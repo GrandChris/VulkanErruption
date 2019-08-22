@@ -44,7 +44,9 @@ private:
 
 		void setupDebugMessenger();
 
-		void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
+			void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
+
+		void createSurface();
 
 		void pickPhysicalDevice();
 
@@ -95,9 +97,10 @@ private:
 
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
+		std::optional<uint32_t> presentFamily;
 
 		bool isComplete() const {
-			return graphicsFamily.has_value();
+			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
 
@@ -106,6 +109,12 @@ private:
 	vk::UniqueDevice device;
 
 	vk::Queue graphicsQueue;
+
+	// Window surface
+
+	vk::UniqueSurfaceKHR surface;
+
+	vk::Queue presentQueue;
 
 };
 

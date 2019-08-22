@@ -10,6 +10,7 @@
 #include "HelloTriangleApplication.h"
 
 #include <map>
+#include <set>
 
 // runtime loaded vulkan functions
 
@@ -65,6 +66,7 @@ void HelloTriangleApplication::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
+	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 }
@@ -175,6 +177,17 @@ void HelloTriangleApplication::populateDebugMessengerCreateInfo(vk::DebugUtilsMe
 	createInfo.setPfnUserCallback(debugCallback);
 }
 
+void HelloTriangleApplication::createSurface()
+{
+	VkSurfaceKHR pSurface;
+
+	if (glfwCreateWindowSurface(instance.get(), window.get(), nullptr, &pSurface) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create window surface!");
+	}
+
+	surface = vk::UniqueSurfaceKHR(pSurface, instance.get());
+}
+
 void HelloTriangleApplication::pickPhysicalDevice()
 {
 	auto const devices = instance->enumeratePhysicalDevices();
@@ -241,6 +254,12 @@ HelloTriangleApplication::QueueFamilyIndices HelloTriangleApplication::findQueue
 			indices.graphicsFamily = i;
 		}
 
+		VkBool32 const presentSupport = device.getSurfaceSupportKHR(i, surface.get());
+		if (queueFamily.queueCount > 0 && presentSupport)
+		{
+			indices.presentFamily = i;
+		}
+
 		if (indices.isComplete()) {
 			break;
 		}
@@ -255,24 +274,36 @@ void HelloTriangleApplication::createLogicalDevice()
 {
 	QueueFamilyIndices const indices = findQueueFamilies(physicalDevice);
 
-	vk::DeviceQueueCreateInfo queueCreateInfo;
-	queueCreateInfo.setQueueFamilyIndex(indices.graphicsFamily.value());
-	queueCreateInfo.setQueueCount(1);
+	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+	std::set<uint32_t> uniqueQueuFamilies = {
+		indices.graphicsFamily.value(),
+		indices.presentFamily.value()
+	};
 
 	float const queuePriority = 1.0f;
-	queueCreateInfo.setPQueuePriorities(&queuePriority);
-
+	for (uint32_t queueFamily : uniqueQueuFamilies)
+	{
+		vk::DeviceQueueCreateInfo queueCreateInfo;
+		queueCreateInfo.setQueueFamilyIndex(indices.graphicsFamily.value());
+		queueCreateInfo.setQueueCount(1);
+		queueCreateInfo.setPQueuePriorities(&queuePriority);
+		
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+	
 	vk::PhysicalDeviceFeatures deviceFeatures;
 
 	vk::DeviceCreateInfo createInfo;
-	createInfo.setPQueueCreateInfos(&queueCreateInfo);
-	createInfo.setQueueCreateInfoCount(1);
+	createInfo.setQueueCreateInfoCount(static_cast<uint32_t>(queueCreateInfos.size()));
+	createInfo.setPQueueCreateInfos(queueCreateInfos.data());
+	
 	createInfo.setPEnabledFeatures(&deviceFeatures);
 	createInfo.setEnabledExtensionCount(0);
 
 	device = physicalDevice.createDeviceUnique(createInfo);
 
 	graphicsQueue =  device->getQueue(indices.graphicsFamily.value(), 0);
+	presentQueue = device->getQueue(indices.presentFamily.value(), 0);
 }
 
 void HelloTriangleApplication::mainLoop()
