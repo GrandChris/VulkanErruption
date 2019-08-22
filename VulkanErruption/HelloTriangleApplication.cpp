@@ -9,6 +9,8 @@
 
 #include "HelloTriangleApplication.h"
 
+#include <map>
+
 // runtime loaded vulkan functions
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
@@ -63,6 +65,7 @@ void HelloTriangleApplication::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
+	pickPhysicalDevice();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -169,6 +172,82 @@ void HelloTriangleApplication::populateDebugMessengerCreateInfo(vk::DebugUtilsMe
 		vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
 	);
 	createInfo.setPfnUserCallback(debugCallback);
+}
+
+void HelloTriangleApplication::pickPhysicalDevice()
+{
+	auto const devices = instance->enumeratePhysicalDevices();
+
+	// Use an ordered map to automatically sort candidates by increasing score
+	std::multimap<int, vk::PhysicalDevice const &> candidates;
+
+	for (auto const& device : devices)
+	{
+		int const score = rateDeviceSuitability(device);
+		candidates.insert(std::make_pair(score, device));
+	}
+
+	if (!candidates.empty() && candidates.rbegin()->first > 0 && isDeviceSuitable(candidates.rbegin()->second))
+	{
+		physicalDevice = candidates.rbegin()->second;
+	}
+	else
+	{
+		throw std::runtime_error("failed to find a suitable GPU!");
+	}
+}
+
+int HelloTriangleApplication::rateDeviceSuitability(vk::PhysicalDevice const& device)
+{
+	auto const deviceProperties = device.getProperties();
+	auto const deviceFeatures = device.getFeatures();
+
+	int score = 0;
+
+	if (deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
+	{
+		score += 1000;
+	}
+
+	// Maximum possible size of textures affects graphics quality
+	score += deviceProperties.limits.maxImageDimension2D;
+
+	// Application can't function without geometry shaders
+	if (!deviceFeatures.geometryShader) {
+		return 0;
+	}
+
+	return score;
+}
+
+bool HelloTriangleApplication::isDeviceSuitable(vk::PhysicalDevice const& device)
+{
+	QueueFamilyIndices const indices = findQueueFamilies(device);
+
+	return indices.isComplete();
+}
+
+HelloTriangleApplication::QueueFamilyIndices HelloTriangleApplication::findQueueFamilies(vk::PhysicalDevice const& device)
+{
+	QueueFamilyIndices indices;
+
+	auto const queueFamilies = device.getQueueFamilyProperties();
+
+	int i = 0;
+	for (auto const& queueFamily : queueFamilies)
+	{
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
+			indices.graphicsFamily = i;
+		}
+
+		if (indices.isComplete()) {
+			break;
+		}
+
+		i++;
+	}
+
+	return indices;
 }
 
 void HelloTriangleApplication::mainLoop()

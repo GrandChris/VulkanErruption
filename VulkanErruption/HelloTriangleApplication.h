@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <functional>
 #include <memory>
+#include <optional>
 
 
 
@@ -29,6 +30,7 @@ public:
 	void run();
 
 private:
+	struct QueueFamilyIndices;
 
 	void initWindow();
 
@@ -44,9 +46,19 @@ private:
 
 		void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
 
+		void pickPhysicalDevice();
+
+			int rateDeviceSuitability(vk::PhysicalDevice const & device);
+
+			bool isDeviceSuitable(vk::PhysicalDevice const & device);
+
+			QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice const& device);
+
 	void mainLoop();
 
 	void cleanup();
+
+	// Instance
 
 	const int WIDTH = 800;
 	const int HEIGHT = 600;
@@ -55,7 +67,8 @@ private:
 
 	vk::UniqueInstance instance;
 
-	// validation layer
+	// Validation layers
+
 	const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
 	};
@@ -73,6 +86,18 @@ private:
 		void* pUserData);
 
 	vk::UniqueDebugUtilsMessengerEXT debugMessanger;
+
+	// Physical devices and queue families
+
+	vk::PhysicalDevice physicalDevice;
+
+	struct QueueFamilyIndices {
+		std::optional<uint32_t> graphicsFamily;
+
+		bool isComplete() const {
+			return graphicsFamily.has_value();
+		}
+	};
 
 };
 
