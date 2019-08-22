@@ -34,7 +34,15 @@ private:
 
 	void initVulkan();
 
-	void createInstance();
+		void createInstance();
+
+			std::vector<const char*> getRequiredExtensions();
+
+			bool checkValidationLayerSupport();
+
+		void setupDebugMessenger();
+
+		void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
 
 	void mainLoop();
 
@@ -46,6 +54,26 @@ private:
 	upGLFWWindow window;
 
 	vk::UniqueInstance instance;
+
+	// validation layer
+	const std::vector<const char*> validationLayers = {
+	"VK_LAYER_KHRONOS_validation"
+	};
+
+#ifdef NDEBUG
+	const bool enableValidationLayers = false;
+#else
+	const bool enableValidationLayers = true;
+#endif
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData);
+
+	vk::UniqueDebugUtilsMessengerEXT debugMessanger;
+
 };
 
 
