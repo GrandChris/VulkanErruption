@@ -54,6 +54,8 @@ private:
 
 			QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice const& device);
 
+		void createLogicalDevice();
+
 	void mainLoop();
 
 	void cleanup();
@@ -98,6 +100,12 @@ private:
 			return graphicsFamily.has_value();
 		}
 	};
+
+	// Logical device and queues
+
+	vk::UniqueDevice device;
+
+	vk::Queue graphicsQueue;
 
 };
 

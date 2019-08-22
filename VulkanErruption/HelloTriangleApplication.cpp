@@ -66,6 +66,7 @@ void HelloTriangleApplication::initVulkan()
 	createInstance();
 	setupDebugMessenger();
 	pickPhysicalDevice();
+	createLogicalDevice();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -248,6 +249,30 @@ HelloTriangleApplication::QueueFamilyIndices HelloTriangleApplication::findQueue
 	}
 
 	return indices;
+}
+
+void HelloTriangleApplication::createLogicalDevice()
+{
+	QueueFamilyIndices const indices = findQueueFamilies(physicalDevice);
+
+	vk::DeviceQueueCreateInfo queueCreateInfo;
+	queueCreateInfo.setQueueFamilyIndex(indices.graphicsFamily.value());
+	queueCreateInfo.setQueueCount(1);
+
+	float const queuePriority = 1.0f;
+	queueCreateInfo.setPQueuePriorities(&queuePriority);
+
+	vk::PhysicalDeviceFeatures deviceFeatures;
+
+	vk::DeviceCreateInfo createInfo;
+	createInfo.setPQueueCreateInfos(&queueCreateInfo);
+	createInfo.setQueueCreateInfoCount(1);
+	createInfo.setPEnabledFeatures(&deviceFeatures);
+	createInfo.setEnabledExtensionCount(0);
+
+	device = physicalDevice.createDeviceUnique(createInfo);
+
+	graphicsQueue =  device->getQueue(indices.graphicsFamily.value(), 0);
 }
 
 void HelloTriangleApplication::mainLoop()
