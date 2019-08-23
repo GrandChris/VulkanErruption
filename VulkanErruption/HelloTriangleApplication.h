@@ -71,6 +71,8 @@ private:
 
 			vk::Extent2D chooseSwapExtent(vk::SurfaceCapabilitiesKHR const& capabilities);
 
+			void createImageViews();
+
 	void mainLoop();
 
 	void cleanup();
@@ -146,6 +148,10 @@ private:
 	std::vector<vk::Image> swapChainImages;
 	vk::Format swapChainImageFormat;
 	vk::Extent2D swapChainExtent;
+
+	// Image views
+
+	std::vector<vk::UniqueImageView> swapChainImageViews;
 };
 
 
