@@ -71,7 +71,11 @@ private:
 
 			vk::Extent2D chooseSwapExtent(vk::SurfaceCapabilitiesKHR const& capabilities);
 
-			void createImageViews();
+		void createImageViews();
+
+		void createGraphicsPipeline();
+
+		vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
 
 	void mainLoop();
 
@@ -152,6 +156,10 @@ private:
 	// Image views
 
 	std::vector<vk::UniqueImageView> swapChainImageViews;
+
+	// Shader modules
+
+
 };
 
 

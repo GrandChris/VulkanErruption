@@ -29,5 +29,8 @@
     <ClInclude Include="upGLFWWindow.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="File.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,6 +9,8 @@
 
 #include "HelloTriangleApplication.h"
 
+#include "File.h"
+
 #include <map>
 #include <set>
 
@@ -71,6 +73,7 @@ void HelloTriangleApplication::initVulkan()
 	createLogicalDevice();
 	createSwapChain();
 	createImageViews();
+	createGraphicsPipeline();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -477,6 +480,41 @@ void HelloTriangleApplication::createImageViews()
 	}
 
 
+}
+
+void HelloTriangleApplication::createGraphicsPipeline()
+{
+	auto const vertShaderCode = readFile("shaders/vert.spv");
+	auto const fragShaderCode = readFile("shaders/frag.spv");
+
+	auto const vertShaderModule = createShaderModule(vertShaderCode);
+	auto const fragShaderModule = createShaderModule(fragShaderCode);
+
+	vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
+	vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
+	vertShaderStageInfo.setModule(vertShaderModule.get());
+	vertShaderStageInfo.setPName("main");
+
+	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
+	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
+	fragShaderStageInfo.setModule(fragShaderModule.get());
+	fragShaderStageInfo.setPName("main");
+
+	vk::PipelineShaderStageCreateInfo const shaderStages[] = {
+		vertShaderStageInfo,
+		fragShaderStageInfo
+	};
+}
+
+vk::UniqueShaderModule HelloTriangleApplication::createShaderModule(std::vector<char> const& code)
+{
+	vk::ShaderModuleCreateInfo createInfo;
+	createInfo.setCodeSize(code.size());
+	createInfo.setPCode(reinterpret_cast<uint32_t const*>(code.data()));
+
+	auto shaderModule = device->createShaderModuleUnique(createInfo);
+
+	return shaderModule;
 }
 
 void HelloTriangleApplication::mainLoop()

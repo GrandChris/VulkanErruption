@@ -167,6 +167,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="File.h" />
     <ClInclude Include="HelloTriangleApplication.h" />
     <ClInclude Include="upGLFWWindow.h" />
   </ItemGroup>
