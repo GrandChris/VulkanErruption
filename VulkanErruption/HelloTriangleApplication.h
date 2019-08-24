@@ -169,7 +169,9 @@ private:
 
 	vk::UniquePipelineLayout pipelineLayout;
 
+	// Graphics pipeline
 
+	vk::UniquePipeline graphicsPipeline;
 
 };
 

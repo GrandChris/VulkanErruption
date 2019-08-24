@@ -559,7 +559,7 @@ void HelloTriangleApplication::createGraphicsPipeline()
 	scissor.setExtent(swapChainExtent);
 
 	vk::PipelineViewportStateCreateInfo viewportState;
-	viewportState.setViewportCount(0);
+	viewportState.setViewportCount(1);
 	viewportState.setPViewports(&viewport);
 	viewportState.setScissorCount(1);
 	viewportState.setPScissors(&scissor);
@@ -637,6 +637,25 @@ void HelloTriangleApplication::createGraphicsPipeline()
 	pipelineLayoutInfo.setPPushConstantRanges(nullptr); // Optional
 
 	pipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutInfo);
+
+	vk::GraphicsPipelineCreateInfo pipelineInfo;
+	pipelineInfo.setStageCount(2);
+	pipelineInfo.setPStages(shaderStages);
+	pipelineInfo.setPVertexInputState(&vertexInputInfo);
+	pipelineInfo.setPInputAssemblyState(&inputAssembly);
+	pipelineInfo.setPViewportState(&viewportState);
+	pipelineInfo.setPRasterizationState(&rasterizer);
+	pipelineInfo.setPMultisampleState(&multisampling);
+	pipelineInfo.setPDepthStencilState(nullptr); // optional
+	pipelineInfo.setPColorBlendState(&colorBlending);
+	pipelineInfo.setPDynamicState(nullptr); // optional
+	pipelineInfo.setLayout(pipelineLayout.get());
+	pipelineInfo.setRenderPass(renderPass.get());
+	pipelineInfo.setSubpass(0);
+	//pipelineInfo.setBasePipelineHandle(); // Optional
+	pipelineInfo.setBasePipelineIndex(-1); // Optional
+
+	graphicsPipeline = device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
 }
 
 vk::UniqueShaderModule HelloTriangleApplication::createShaderModule(std::vector<char> const& code)
