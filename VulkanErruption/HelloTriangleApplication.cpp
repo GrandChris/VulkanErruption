@@ -73,6 +73,7 @@ void HelloTriangleApplication::initVulkan()
 	createLogicalDevice();
 	createSwapChain();
 	createImageViews();
+	createRenderPass();
 	createGraphicsPipeline();
 }
 
@@ -480,6 +481,36 @@ void HelloTriangleApplication::createImageViews()
 	}
 
 
+}
+
+void HelloTriangleApplication::createRenderPass()
+{
+	vk::AttachmentDescription colorAttachment;
+	colorAttachment.setFormat(swapChainImageFormat);
+	colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+	colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+	colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+	colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.setAttachment(0);
+	colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+	vk::SubpassDescription subpass;
+	subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+	subpass.setColorAttachmentCount(1);
+	subpass.setPColorAttachments(&colorAttachmentRef);
+
+	vk::RenderPassCreateInfo renderPassInfo;
+	renderPassInfo.setAttachmentCount(1);
+	renderPassInfo.setPAttachments(&colorAttachment);
+	renderPassInfo.setSubpassCount(1);
+	renderPassInfo.setPSubpasses(&subpass);
+
+	renderPass = device->createRenderPassUnique(renderPassInfo);
 }
 
 void HelloTriangleApplication::createGraphicsPipeline()

@@ -73,9 +73,11 @@ private:
 
 		void createImageViews();
 
+		void createRenderPass();
+
 		void createGraphicsPipeline();
 
-		vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
+			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
 
 	void mainLoop();
 
@@ -159,9 +161,15 @@ private:
 
 	// Shader modules
 
+	// Render passes
+
+	vk::UniqueRenderPass renderPass;
+
 	// Fixed functions
 
 	vk::UniquePipelineLayout pipelineLayout;
+
+
 
 };
 

@@ -7,7 +7,6 @@ Vulkan GLFW application for rendering constantly changing particles.
 + Draw constantly changing particles
 + Easy to include in another application
 + Easy to use
-+ Well documented
 
 ## Advanced Goals
 
