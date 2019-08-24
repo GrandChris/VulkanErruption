@@ -79,6 +79,8 @@ private:
 
 			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
 
+		void createFramebuffers();
+
 	void mainLoop();
 
 	void cleanup();
@@ -172,6 +174,10 @@ private:
 	// Graphics pipeline
 
 	vk::UniquePipeline graphicsPipeline;
+
+	// Framebuffers
+
+	std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
 
 };
 

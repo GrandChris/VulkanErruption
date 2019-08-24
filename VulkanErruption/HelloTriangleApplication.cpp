@@ -75,6 +75,7 @@ void HelloTriangleApplication::initVulkan()
 	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
+	createFramebuffers();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -667,6 +668,26 @@ vk::UniqueShaderModule HelloTriangleApplication::createShaderModule(std::vector<
 	auto shaderModule = device->createShaderModuleUnique(createInfo);
 
 	return shaderModule;
+}
+
+void HelloTriangleApplication::createFramebuffers()
+{
+	for (auto const& swapImageView : swapChainImageViews)
+	{
+		vk::ImageView attachments[] = {
+			swapImageView.get()
+		};
+
+		vk::FramebufferCreateInfo framebufferInfo;
+		framebufferInfo.setRenderPass(renderPass.get());
+		framebufferInfo.setAttachmentCount(1);
+		framebufferInfo.setPAttachments(attachments);
+		framebufferInfo.setWidth(swapChainExtent.width);
+		framebufferInfo.setHeight(swapChainExtent.height);
+		framebufferInfo.setLayers(1);
+
+		swapChainFramebuffers.push_back(device->createFramebufferUnique(framebufferInfo));
+	}
 }
 
 void HelloTriangleApplication::mainLoop()
