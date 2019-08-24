@@ -78,6 +78,7 @@ void HelloTriangleApplication::initVulkan()
 	createFramebuffers();
 	createCommandPool();
 	createCommandBuffers();
+	createSyncObjects();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -513,6 +514,19 @@ void HelloTriangleApplication::createRenderPass()
 	renderPassInfo.setSubpassCount(1);
 	renderPassInfo.setPSubpasses(&subpass);
 
+
+	vk::SubpassDependency dependency;
+	dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+	dependency.setDstSubpass(0);
+	dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+	//dependency.setSrcAccessMask(0);
+	dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+	dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+	
+	renderPassInfo.setDependencyCount(1);
+	renderPassInfo.setPDependencies(&dependency);
+
+
 	renderPass = device->createRenderPassUnique(renderPassInfo);
 }
 
@@ -741,11 +755,66 @@ void HelloTriangleApplication::createCommandBuffers()
 	}
 }
 
+void HelloTriangleApplication::createSyncObjects()
+{
+	vk::SemaphoreCreateInfo semaphoreInfo;
+	vk::FenceCreateInfo fenceInfo;
+	fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+	{
+		imageAvailableSemaphores.push_back(device->createSemaphoreUnique(semaphoreInfo));
+		renderFinishedSemaphores.push_back(device->createSemaphoreUnique(semaphoreInfo));
+		inFlightFences.push_back(device->createFenceUnique(fenceInfo));
+	}	
+}
+
 void HelloTriangleApplication::mainLoop()
 {
 	while (!glfwWindowShouldClose(window.get())) {
 		glfwPollEvents();
+		drawFrame();
 	}
+
+	device->waitIdle();
+}
+
+void HelloTriangleApplication::drawFrame()
+{
+	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
+	device->resetFences(inFlightFences[currentFrame].get());
+
+	auto const res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
+	uint32_t const imageIndex = res.value;
+
+	vk::SubmitInfo submitInfo;
+	
+	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	submitInfo.setWaitSemaphoreCount(1);
+	submitInfo.setPWaitSemaphores(waitSemaphore);
+	submitInfo.setPWaitDstStageMask(waitStages);
+	submitInfo.setCommandBufferCount(1);
+	submitInfo.setPCommandBuffers(&commandBuffers[imageIndex].get());
+
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].get() };
+	submitInfo.setSignalSemaphoreCount(1);
+	submitInfo.setPSignalSemaphores(signalSemaphores);
+
+	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
+
+	vk::PresentInfoKHR presentInfo;
+	presentInfo.setWaitSemaphoreCount(1);
+	presentInfo.setPWaitSemaphores(signalSemaphores);
+	vk::SwapchainKHR swapChains[] = { swapChain.get() };
+	presentInfo.setSwapchainCount(1);
+	presentInfo.setPSwapchains(swapChains);
+	presentInfo.setPImageIndices(&imageIndex);
+	presentInfo.setPResults(nullptr); // optional
+
+	presentQueue.presentKHR(presentInfo);
+
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void HelloTriangleApplication::cleanup()

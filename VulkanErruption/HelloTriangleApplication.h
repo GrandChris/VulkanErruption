@@ -85,7 +85,11 @@ private:
 
 		void createCommandBuffers();
 
+		void createSyncObjects();
+
 	void mainLoop();
+
+		void drawFrame();
 
 	void cleanup();
 
@@ -188,6 +192,18 @@ private:
 	vk::UniqueCommandPool commandPool;
 
 	std::vector<vk::UniqueCommandBuffer> commandBuffers;
+
+	// Rendering and presentation
+
+	int const MAX_FRAMES_IN_FLIGHT = 2;
+
+	std::vector<vk::UniqueSemaphore> imageAvailableSemaphores;
+	std::vector<vk::UniqueSemaphore> renderFinishedSemaphores;
+	std::vector<vk::UniqueFence> inFlightFences;
+
+	size_t currentFrame = 0;
+
+
 
 };
 
