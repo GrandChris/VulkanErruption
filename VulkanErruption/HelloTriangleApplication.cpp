@@ -504,6 +504,108 @@ void HelloTriangleApplication::createGraphicsPipeline()
 		vertShaderStageInfo,
 		fragShaderStageInfo
 	};
+
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+	vertexInputInfo.setVertexBindingDescriptionCount(0);
+	vertexInputInfo.setPVertexBindingDescriptions(nullptr);
+	vertexInputInfo.setVertexAttributeDescriptionCount(0);
+	vertexInputInfo.setPVertexAttributeDescriptions(nullptr);
+
+	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	inputAssembly.setPrimitiveRestartEnable(VK_FALSE);
+
+	vk::Viewport viewport;
+	viewport.setX(0.0f);
+	viewport.setY(0.0f);
+	viewport.setWidth(static_cast<float>(swapChainExtent.width));
+	viewport.setHeight(static_cast<float>(swapChainExtent.height));
+	viewport.setMaxDepth(0.0f);
+	viewport.setMaxDepth(1.0f);
+
+	vk::Rect2D scissor;
+	scissor.setOffset({ 0, 0 });
+	scissor.setExtent(swapChainExtent);
+
+	vk::PipelineViewportStateCreateInfo viewportState;
+	viewportState.setViewportCount(0);
+	viewportState.setPViewports(&viewport);
+	viewportState.setScissorCount(1);
+	viewportState.setPScissors(&scissor);
+
+	vk::PipelineRasterizationStateCreateInfo rasterizer;
+	rasterizer.setDepthClampEnable(VK_FALSE);
+	rasterizer.setRasterizerDiscardEnable(VK_FALSE);
+	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+	rasterizer.setLineWidth(1.0f);
+	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	rasterizer.setFrontFace(vk::FrontFace::eClockwise);
+	rasterizer.setDepthBiasEnable(VK_FALSE);
+	rasterizer.setDepthBiasConstantFactor(0.0f); // Optional
+	rasterizer.setDepthBiasClamp(0.0f); // Optional
+	rasterizer.setDepthBiasSlopeFactor(0.0f); // Optional
+
+	vk::PipelineMultisampleStateCreateInfo multisampling;
+	multisampling.setSampleShadingEnable(VK_FALSE);
+	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
+	multisampling.setMinSampleShading(1.0f); // Optional
+	multisampling.setPSampleMask(nullptr); // Optional
+	multisampling.setAlphaToCoverageEnable(VK_FALSE); // Optional
+	multisampling.setAlphaToOneEnable(VK_FALSE); // Optional
+
+	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+	colorBlendAttachment.setColorWriteMask(
+		vk::ColorComponentFlagBits::eR |
+		vk::ColorComponentFlagBits::eG |
+		vk::ColorComponentFlagBits::eB |
+		vk::ColorComponentFlagBits::eA 
+	);
+	
+	constexpr bool alphaBlending = false;
+	if constexpr (!alphaBlending)
+	{
+		colorBlendAttachment.setBlendEnable(VK_FALSE);
+		colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne); // Optional
+		colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero); // Optional
+		colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd); // Optional
+		colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne); // Optional
+		colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero); // Optional
+		colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd); // Optional
+	}
+	else
+	{
+		colorBlendAttachment.setBlendEnable(VK_TRUE);
+		colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha); // Optional
+		colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha); // Optional
+		colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd); // Optional
+		colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne); // Optional
+		colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero); // Optional
+		colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd); // Optional
+	}
+	
+	vk::PipelineColorBlendStateCreateInfo colorBlending;
+	colorBlending.setLogicOpEnable(VK_FALSE);
+	colorBlending.setLogicOp(vk::LogicOp::eCopy); // Optional
+	colorBlending.setAttachmentCount(1);
+	colorBlending.setPAttachments(&colorBlendAttachment);
+	colorBlending.setBlendConstants({ 0.0f, 0.0f, 0.0f, 0.0f }); // Optional
+
+	vk::DynamicState dynamicStates[] = {
+		vk::DynamicState::eViewport,
+		vk::DynamicState::eLineWidth
+	};
+
+	vk::PipelineDynamicStateCreateInfo dynamicState;
+	dynamicState.setDynamicStateCount(2);
+	dynamicState.setPDynamicStates(dynamicStates);
+	
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
+	pipelineLayoutInfo.setSetLayoutCount(0); // Optional
+	pipelineLayoutInfo.setPSetLayouts(nullptr); // Optional
+	pipelineLayoutInfo.setPushConstantRangeCount(0); // Optional
+	pipelineLayoutInfo.setPPushConstantRanges(nullptr); // Optional
+
+	pipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutInfo);
 }
 
 vk::UniqueShaderModule HelloTriangleApplication::createShaderModule(std::vector<char> const& code)

@@ -159,6 +159,9 @@ private:
 
 	// Shader modules
 
+	// Fixed functions
+
+	vk::UniquePipelineLayout pipelineLayout;
 
 };
 
