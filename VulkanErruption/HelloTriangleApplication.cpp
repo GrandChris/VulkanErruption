@@ -76,6 +76,8 @@ void HelloTriangleApplication::initVulkan()
 	createRenderPass();
 	createGraphicsPipeline();
 	createFramebuffers();
+	createCommandPool();
+	createCommandBuffers();
 }
 
 void HelloTriangleApplication::createInstance()
@@ -687,6 +689,55 @@ void HelloTriangleApplication::createFramebuffers()
 		framebufferInfo.setLayers(1);
 
 		swapChainFramebuffers.push_back(device->createFramebufferUnique(framebufferInfo));
+	}
+}
+
+void HelloTriangleApplication::createCommandPool()
+{
+	QueueFamilyIndices const queueFamilyIndices = findQueueFamilies(physicalDevice);
+
+	vk::CommandPoolCreateInfo poolInfo;
+	poolInfo.setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
+	//poolInfo.setFlags( ); // Optional
+
+	commandPool = device->createCommandPoolUnique(poolInfo);
+}
+
+void HelloTriangleApplication::createCommandBuffers()
+{
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.setCommandPool(commandPool.get());
+	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+	allocInfo.setCommandBufferCount(static_cast<uint32_t>(swapChainFramebuffers.size()));
+
+	commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
+
+	for (size_t i = 0; i < commandBuffers.size(); i++)
+	{
+		vk::CommandBufferBeginInfo beginInfo;
+		//beginInfo.setFlags( ); // Optional
+		beginInfo.setPInheritanceInfo(nullptr); // Optional
+
+		commandBuffers[i]->begin(beginInfo);
+
+			vk::RenderPassBeginInfo renderPassInfo;
+			renderPassInfo.setRenderPass(renderPass.get());
+			renderPassInfo.setFramebuffer(swapChainFramebuffers[i].get());
+			renderPassInfo.renderArea.setOffset({ 0, 0 });
+			renderPassInfo.renderArea.setExtent(swapChainExtent);
+			vk::ClearValue const clearColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
+			renderPassInfo.setClearValueCount(1);
+			renderPassInfo.setPClearValues(&clearColor);
+
+			commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+				commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
+
+				commandBuffers[i]->draw(3, 1, 0, 0);
+
+			commandBuffers[i]->endRenderPass();
+
+		commandBuffers[i]->end();
 	}
 }
 

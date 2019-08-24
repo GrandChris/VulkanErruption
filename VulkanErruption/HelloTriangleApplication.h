@@ -81,6 +81,10 @@ private:
 
 		void createFramebuffers();
 
+		void createCommandPool();
+
+		void createCommandBuffers();
+
 	void mainLoop();
 
 	void cleanup();
@@ -178,6 +182,12 @@ private:
 	// Framebuffers
 
 	std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
+
+	// Command buffers
+
+	vk::UniqueCommandPool commandPool;
+
+	std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
 };
 
