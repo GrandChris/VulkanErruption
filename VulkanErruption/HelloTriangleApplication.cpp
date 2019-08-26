@@ -560,10 +560,14 @@ void HelloTriangleApplication::createGraphicsPipeline()
 	};
 
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-	vertexInputInfo.setVertexBindingDescriptionCount(0);
-	vertexInputInfo.setPVertexBindingDescriptions(nullptr);
-	vertexInputInfo.setVertexAttributeDescriptionCount(0);
-	vertexInputInfo.setPVertexAttributeDescriptions(nullptr);
+
+	auto bindingDescription = Vertex::getBindingDescription();
+	auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+	vertexInputInfo.setVertexBindingDescriptionCount(1);
+	vertexInputInfo.setPVertexBindingDescriptions(&bindingDescription);
+	vertexInputInfo.setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributeDescriptions.size()));
+	vertexInputInfo.setPVertexAttributeDescriptions(attributeDescriptions.data());
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
@@ -891,7 +895,6 @@ void HelloTriangleApplication::creanupSwapChain()
 	renderPass.reset();
 	swapChainImageViews.clear();
 	swapChain.reset();
-
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL HelloTriangleApplication::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)

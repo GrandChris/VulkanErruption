@@ -170,6 +170,7 @@
     <ClInclude Include="File.h" />
     <ClInclude Include="HelloTriangleApplication.h" />
     <ClInclude Include="upGLFWWindow.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -32,5 +32,8 @@
     <ClInclude Include="File.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -14,8 +14,11 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <glm/glm.hpp>
+
 
 #include "upGLFWWindow.h"
+#include "Vertex.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -213,8 +216,16 @@ private:
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-};
+	// Vertex input description
 
+	std::vector<Vertex> const vertices =
+	{
+		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	};
+
+};
 
 
 
