@@ -59,9 +59,11 @@ void HelloTriangleApplication::initWindow()
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr));
+	glfwSetWindowUserPointer(window.get(), this);
+	glfwSetFramebufferSizeCallback(window.get(), framebufferResizeCallback);
 }
 
 void HelloTriangleApplication::initVulkan()
@@ -441,7 +443,11 @@ vk::Extent2D HelloTriangleApplication::chooseSwapExtent(vk::SurfaceCapabilitiesK
 	}
 	else
 	{
-		vk::Extent2D acutalExtent = {static_cast<uint32_t>(WIDTH), static_cast<uint32_t>(HEIGHT) };
+		int width = 0;
+		int height = 0;
+		glfwGetFramebufferSize(window.get(), &width, &height);
+
+		vk::Extent2D acutalExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
 		acutalExtent.setWidth(
 			std::max(
@@ -782,9 +788,25 @@ void HelloTriangleApplication::mainLoop()
 void HelloTriangleApplication::drawFrame()
 {
 	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
-	device->resetFences(inFlightFences[currentFrame].get());
-
-	auto const res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
+	
+	vk::ResultValue<uint32_t> res(vk::Result::eSuccess, 0);
+	try {
+		res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
+		if (res.result == vk::Result::eErrorOutOfDateKHR)	// window was resized, swap chain is now incompatible
+		{
+			recreateSwapChain();
+			return;
+		}
+		else if (res.result != vk::Result::eSuccess && res.result != vk::Result::eSuboptimalKHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const &)
+	{
+		recreateSwapChain();
+		return;
+	}
+	
 	uint32_t const imageIndex = res.value;
 
 	vk::SubmitInfo submitInfo;
@@ -801,6 +823,8 @@ void HelloTriangleApplication::drawFrame()
 	submitInfo.setSignalSemaphoreCount(1);
 	submitInfo.setPSignalSemaphores(signalSemaphores);
 
+	device->resetFences(inFlightFences[currentFrame].get());
+
 	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
 
 	vk::PresentInfoKHR presentInfo;
@@ -812,13 +836,61 @@ void HelloTriangleApplication::drawFrame()
 	presentInfo.setPImageIndices(&imageIndex);
 	presentInfo.setPResults(nullptr); // optional
 
-	presentQueue.presentKHR(presentInfo);
+	try {
+		auto const resPresent = presentQueue.presentKHR(presentInfo);
+		if (resPresent == vk::Result::eErrorOutOfDateKHR || resPresent == vk::Result::eSuboptimalKHR || framebufferResized)	// window was resized, swap chain is now incompatible
+		{
+			framebufferResized = false;
+			recreateSwapChain();
+		}
+		else if (res.result != vk::Result::eSuccess) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const & )
+	{
+		framebufferResized = false;
+		recreateSwapChain();
+	}
+
 
 	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void HelloTriangleApplication::cleanup()
 {
+
+}
+
+void HelloTriangleApplication::recreateSwapChain()
+{
+	int width = 0, height = 0;
+	while (width == 0 || height == 0) {
+		glfwGetFramebufferSize(window.get(), &width, &height);
+		glfwWaitEvents();
+	}
+
+	device->waitIdle();
+
+	creanupSwapChain();
+
+	createSwapChain();
+	createImageViews();
+	createRenderPass();
+	createGraphicsPipeline();
+	createFramebuffers();
+	createCommandBuffers();
+}
+
+void HelloTriangleApplication::creanupSwapChain()
+{
+	swapChainFramebuffers.clear();
+	commandBuffers.clear();
+	graphicsPipeline.reset();
+	pipelineLayout.reset();
+	renderPass.reset();
+	swapChainImageViews.clear();
+	swapChain.reset();
 
 }
 
@@ -831,4 +903,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL HelloTriangleApplication::debugCallback(VkDebugUt
 	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
+}
+
+void HelloTriangleApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+	auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+	app->framebufferResized = true;
 }

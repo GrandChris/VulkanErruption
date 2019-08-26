@@ -93,6 +93,10 @@ private:
 
 	void cleanup();
 
+	void recreateSwapChain();
+
+	void creanupSwapChain();
+
 	// Instance
 
 	const int WIDTH = 800;
@@ -203,7 +207,11 @@ private:
 
 	size_t currentFrame = 0;
 
+	// Swap chain recreation
 
+	bool framebufferResized = false;
+
+	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 };
 
