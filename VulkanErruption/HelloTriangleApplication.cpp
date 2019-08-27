@@ -79,6 +79,7 @@ void HelloTriangleApplication::initVulkan()
 	createGraphicsPipeline();
 	createFramebuffers();
 	createCommandPool();
+	createVertexBuffer();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -727,6 +728,49 @@ void HelloTriangleApplication::createCommandPool()
 	commandPool = device->createCommandPoolUnique(poolInfo);
 }
 
+void HelloTriangleApplication::createVertexBuffer()
+{
+	vk::BufferCreateInfo bufferInfo;
+	bufferInfo.setSize(sizeof(vertices.front()) * vertices.size());
+	bufferInfo.setUsage(vk::BufferUsageFlagBits::eVertexBuffer);
+	bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
+
+	vertexBuffer = device->createBufferUnique(bufferInfo);
+
+	auto const memRequirements = device->getBufferMemoryRequirements(vertexBuffer.get());
+
+	vk::MemoryAllocateInfo allocInfo;
+	allocInfo.setAllocationSize(memRequirements.size);
+	allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent));
+
+	vertexBufferMemory = device->allocateMemoryUnique(allocInfo);
+
+	device->bindBufferMemory(vertexBuffer.get(), vertexBufferMemory.get(), 0);
+
+	auto const data = device->mapMemory(vertexBufferMemory.get(), 0, bufferInfo.size);
+		memcpy(data, vertices.data(), static_cast<size_t>(bufferInfo.size));
+	device->unmapMemory(vertexBufferMemory.get());
+}
+
+uint32_t HelloTriangleApplication::findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const& properties)
+{
+	auto const memProperties = physicalDevice.getMemoryProperties();
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+	{
+		if ((typeFilter & (1 << i)) &&
+			(memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("failed to find suitable memory type!");
+
+	return uint32_t();
+}
+
 void HelloTriangleApplication::createCommandBuffers()
 {
 	vk::CommandBufferAllocateInfo allocInfo;
@@ -757,7 +801,11 @@ void HelloTriangleApplication::createCommandBuffers()
 
 				commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
 
-				commandBuffers[i]->draw(3, 1, 0, 0);
+				vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
+				vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
+				commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);
+
+				commandBuffers[i]->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
 			commandBuffers[i]->endRenderPass();
 

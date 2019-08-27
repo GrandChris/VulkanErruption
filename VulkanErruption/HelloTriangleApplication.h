@@ -86,6 +86,10 @@ private:
 
 		void createCommandPool();
 
+		void createVertexBuffer();
+			
+			uint32_t findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const & properties);
+
 		void createCommandBuffers();
 
 		void createSyncObjects();
@@ -116,7 +120,7 @@ private:
 	};
 
 #ifdef NDEBUG
-	const bool enableValidationLayers = false;
+	const bool enableValidationLayers = true;
 #else
 	const bool enableValidationLayers = true;
 #endif
@@ -220,11 +224,22 @@ private:
 
 	std::vector<Vertex> const vertices =
 	{
-		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
 		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
 		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 	};
 
+	// Vertex buffer creation
+
+	vk::UniqueDeviceMemory vertexBufferMemory;
+
+	vk::UniqueBuffer vertexBuffer;
+
+
+
+	
+
+	
 };
 
 
