@@ -86,6 +86,8 @@ void HelloTriangleApplication::initVulkan()
 	createCommandPool();
 	createVertexBuffer();
 	createUniformBuffers();
+	createDescriptorPool();
+	createDescriptorSets();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -620,7 +622,7 @@ void HelloTriangleApplication::createGraphicsPipeline()
 	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 	rasterizer.setLineWidth(1.0f);
 	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-	rasterizer.setFrontFace(vk::FrontFace::eClockwise);
+	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
 	rasterizer.setDepthBiasEnable(VK_FALSE);
 	rasterizer.setDepthBiasConstantFactor(0.0f); // Optional
 	rasterizer.setDepthBiasClamp(0.0f); // Optional
@@ -859,6 +861,51 @@ void HelloTriangleApplication::createUniformBuffers()
 	}
 }
 
+void HelloTriangleApplication::createDescriptorPool()
+{
+	vk::DescriptorPoolSize poolSize;
+	poolSize.setDescriptorCount(static_cast<uint32_t>(swapChainImages.size()));
+
+	vk::DescriptorPoolCreateInfo poolInfo;
+	poolInfo.setPoolSizeCount(1);
+	poolInfo.setPPoolSizes(&poolSize);
+	poolInfo.setMaxSets(static_cast<uint32_t>(swapChainImages.size()));
+
+	descriptorPool = device->createDescriptorPoolUnique(poolInfo);
+}
+
+void HelloTriangleApplication::createDescriptorSets()
+{
+	std::vector<vk::DescriptorSetLayout> const layouts(swapChainImages.size(), descriptorSetLayout.get());
+
+	vk::DescriptorSetAllocateInfo allocInfo;
+	allocInfo.setDescriptorPool(descriptorPool.get());
+	allocInfo.setDescriptorSetCount(static_cast<uint32_t>(swapChainImages.size()));
+	allocInfo.setPSetLayouts(layouts.data());
+
+	descriptorSets = device->allocateDescriptorSets(allocInfo);
+
+	for (size_t i = 0; i < swapChainImages.size(); i++) 
+	{
+		vk::DescriptorBufferInfo bufferInfo;
+		bufferInfo.setBuffer(uniformBuffers[i].get());
+		bufferInfo.setOffset(0);
+		bufferInfo.setRange(sizeof(UniformBufferObject));
+
+		vk::WriteDescriptorSet descriptorWrite;
+		descriptorWrite.setDstSet(descriptorSets[i]);
+		descriptorWrite.setDstBinding(0);
+		descriptorWrite.setDstArrayElement(0);
+		descriptorWrite.setDescriptorType(vk::DescriptorType::eUniformBuffer);
+		descriptorWrite.setDescriptorCount(1);
+		descriptorWrite.setPBufferInfo(&bufferInfo);
+		descriptorWrite.setPImageInfo(nullptr); // Optional
+		descriptorWrite.setPTexelBufferView(nullptr); // Optional
+
+		device->updateDescriptorSets(descriptorWrite, nullptr);
+	}
+}
+
 void HelloTriangleApplication::createCommandBuffers()
 {
 	vk::CommandBufferAllocateInfo allocInfo;
@@ -893,6 +940,8 @@ void HelloTriangleApplication::createCommandBuffers()
 				//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
 				//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
 				commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
+
+				commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
 
 				commandBuffers[i]->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
@@ -1034,7 +1083,7 @@ void HelloTriangleApplication::recreateSwapChain()
 
 	device->waitIdle();
 
-	creanupSwapChain();
+	cleanupSwapChain();
 
 	createSwapChain();
 	createImageViews();
@@ -1042,13 +1091,17 @@ void HelloTriangleApplication::recreateSwapChain()
 	createGraphicsPipeline();
 	createFramebuffers();
 	createUniformBuffers();
+	createDescriptorPool();
+	createDescriptorSets();
 	createCommandBuffers();
 	
 }
 
-void HelloTriangleApplication::creanupSwapChain()
+void HelloTriangleApplication::cleanupSwapChain()
 {
 	swapChainFramebuffers.clear();
+	descriptorSets.clear();
+	descriptorPool.reset();	
 	commandBuffers.clear();
 	uniformBuffers.clear();
 	uniformBuffersMemory.clear();
