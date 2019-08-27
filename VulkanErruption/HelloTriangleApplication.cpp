@@ -730,27 +730,26 @@ void HelloTriangleApplication::createCommandPool()
 
 void HelloTriangleApplication::createVertexBuffer()
 {
-	vk::BufferCreateInfo bufferInfo;
-	bufferInfo.setSize(sizeof(vertices.front()) * vertices.size());
-	bufferInfo.setUsage(vk::BufferUsageFlagBits::eVertexBuffer);
-	bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
+	vk::DeviceSize const bufferSize = sizeof(vertices.front()) * vertices.size();
 
-	vertexBuffer = device->createBufferUnique(bufferInfo);
+	vk::UniqueDeviceMemory stagingBufferMemory;
+	vk::UniqueBuffer stagingBuffer;
 
-	auto const memRequirements = device->getBufferMemoryRequirements(vertexBuffer.get());
+	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		stagingBuffer, stagingBufferMemory
+	);
 
-	vk::MemoryAllocateInfo allocInfo;
-	allocInfo.setAllocationSize(memRequirements.size);
-	allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent));
+	auto const data = device->mapMemory(stagingBufferMemory.get(), 0, bufferSize);
+		memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+	device->unmapMemory(stagingBufferMemory.get());
 
-	vertexBufferMemory = device->allocateMemoryUnique(allocInfo);
+	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		vertexBuffer, vertexBufferMemory
+	);
 
-	device->bindBufferMemory(vertexBuffer.get(), vertexBufferMemory.get(), 0);
-
-	auto const data = device->mapMemory(vertexBufferMemory.get(), 0, bufferInfo.size);
-		memcpy(data, vertices.data(), static_cast<size_t>(bufferInfo.size));
-	device->unmapMemory(vertexBufferMemory.get());
+	copyBuffer(stagingBuffer.get(), vertexBuffer.get(), bufferSize);
 }
 
 uint32_t HelloTriangleApplication::findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const& properties)
@@ -769,6 +768,57 @@ uint32_t HelloTriangleApplication::findMemoryType(uint32_t const typeFilter, vk:
 	throw std::runtime_error("failed to find suitable memory type!");
 
 	return uint32_t();
+}
+
+void HelloTriangleApplication::createBuffer(vk::DeviceSize const size, 
+	vk::BufferUsageFlags const usage, vk::MemoryPropertyFlags const properties, 
+	vk::UniqueBuffer & buffer, vk::UniqueDeviceMemory & bufferMemory)
+{
+	vk::BufferCreateInfo bufferInfo;
+	bufferInfo.setSize(size);
+	bufferInfo.setUsage(usage);
+	bufferInfo.setSharingMode(vk::SharingMode::eExclusive);
+
+	buffer = device->createBufferUnique(bufferInfo);
+
+	auto const memRequirements = device->getBufferMemoryRequirements(buffer.get());
+
+	vk::MemoryAllocateInfo allocInfo;
+	allocInfo.setAllocationSize(memRequirements.size);
+	allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, properties));
+
+	bufferMemory = device->allocateMemoryUnique(allocInfo);
+
+	device->bindBufferMemory(buffer.get(), bufferMemory.get(), 0);
+}
+
+void HelloTriangleApplication::copyBuffer(vk::Buffer const& srcBuffer, vk::Buffer& dstBuffer, vk::DeviceSize size)
+{
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+	allocInfo.setCommandPool(commandPool.get());
+	allocInfo.setCommandBufferCount(1);
+
+	auto commandBuffer = device->allocateCommandBuffersUnique(allocInfo);
+
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
+	commandBuffer.front()->begin(beginInfo);
+		vk::BufferCopy copyRegion;
+		copyRegion.setSrcOffset(0); // Optional
+		copyRegion.setDstOffset(0); // Optional
+		copyRegion.setSize(size);
+		commandBuffer.front()->copyBuffer(srcBuffer, dstBuffer, copyRegion);
+	commandBuffer.front()->end();
+
+	vk::SubmitInfo submitInfo;
+	submitInfo.setCommandBufferCount(1);
+	vk::CommandBuffer pCommandBuffers[] = { commandBuffer.front().get() };
+	submitInfo.setPCommandBuffers(pCommandBuffers);
+
+	graphicsQueue.submit(submitInfo, nullptr);
+	graphicsQueue.waitIdle();
 }
 
 void HelloTriangleApplication::createCommandBuffers()
@@ -801,9 +851,10 @@ void HelloTriangleApplication::createCommandBuffers()
 
 				commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
 
-				vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
-				vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
-				commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);
+				//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
+				//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
+				//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
+				commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
 
 				commandBuffers[i]->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 

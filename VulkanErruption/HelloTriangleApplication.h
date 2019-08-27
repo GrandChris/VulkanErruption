@@ -90,6 +90,11 @@ private:
 			
 			uint32_t findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const & properties);
 
+			void createBuffer(vk::DeviceSize const size, vk::BufferUsageFlags const usage,
+				vk::MemoryPropertyFlags const properties, vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory);
+
+			void copyBuffer(vk::Buffer const & srcBuffer, vk::Buffer & dstBuffer, vk::DeviceSize size);
+
 		void createCommandBuffers();
 
 		void createSyncObjects();
@@ -120,7 +125,7 @@ private:
 	};
 
 #ifdef NDEBUG
-	const bool enableValidationLayers = true;
+	const bool enableValidationLayers = false;
 #else
 	const bool enableValidationLayers = true;
 #endif
@@ -235,7 +240,7 @@ private:
 
 	vk::UniqueBuffer vertexBuffer;
 
-
+	// Staging buffer
 
 	
 
