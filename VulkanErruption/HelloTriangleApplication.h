@@ -78,6 +78,8 @@ private:
 
 		void createRenderPass();
 
+		void createDescriptorSetLayout();
+
 		void createGraphicsPipeline();
 
 			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
@@ -95,6 +97,8 @@ private:
 
 			void copyBuffer(vk::Buffer const & srcBuffer, vk::Buffer & dstBuffer, vk::DeviceSize size);
 
+		void createUniformBuffers();
+
 		void createCommandBuffers();
 
 		void createSyncObjects();
@@ -102,6 +106,8 @@ private:
 	void mainLoop();
 
 		void drawFrame();
+
+			void updateUniformBuffer(uint32_t currentImage);
 
 	void cleanup();
 
@@ -242,9 +248,20 @@ private:
 
 	// Staging buffer
 
-	
+	// Descriptor layout and buffer
 
+	struct UniformBufferObject
+	{
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 proj;
+	};
+
+	vk::UniqueDescriptorSetLayout descriptorSetLayout;
 	
+	std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;
+
+	std::vector<vk::UniqueBuffer> uniformBuffers;
 };
 
 

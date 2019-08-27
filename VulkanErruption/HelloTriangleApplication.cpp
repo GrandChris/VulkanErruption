@@ -11,6 +11,10 @@
 
 #include "File.h"
 
+#define GLM_FORCE_RADIANS
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
 #include <map>
 #include <set>
 
@@ -76,10 +80,12 @@ void HelloTriangleApplication::initVulkan()
 	createSwapChain();
 	createImageViews();
 	createRenderPass();
+	createDescriptorSetLayout();
 	createGraphicsPipeline();
 	createFramebuffers();
 	createCommandPool();
 	createVertexBuffer();
+	createUniformBuffers();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -537,6 +543,22 @@ void HelloTriangleApplication::createRenderPass()
 	renderPass = device->createRenderPassUnique(renderPassInfo);
 }
 
+void HelloTriangleApplication::createDescriptorSetLayout()
+{
+	vk::DescriptorSetLayoutBinding uboLayoutBinding;
+	uboLayoutBinding.setBinding(0);
+	uboLayoutBinding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
+	uboLayoutBinding.setDescriptorCount(1);
+	uboLayoutBinding.setStageFlags(vk::ShaderStageFlagBits::eVertex);
+	uboLayoutBinding.setPImmutableSamplers(nullptr); // Optional
+	
+	vk::DescriptorSetLayoutCreateInfo layoutInfo;
+	layoutInfo.setBindingCount(1);
+	layoutInfo.setPBindings(&uboLayoutBinding);
+
+	descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);	
+}
+
 void HelloTriangleApplication::createGraphicsPipeline()
 {
 	auto const vertShaderCode = readFile("shaders/vert.spv");
@@ -659,8 +681,8 @@ void HelloTriangleApplication::createGraphicsPipeline()
 	dynamicState.setPDynamicStates(dynamicStates);
 	
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-	pipelineLayoutInfo.setSetLayoutCount(0); // Optional
-	pipelineLayoutInfo.setPSetLayouts(nullptr); // Optional
+	pipelineLayoutInfo.setSetLayoutCount(1); 
+	pipelineLayoutInfo.setPSetLayouts(&descriptorSetLayout.get()); 
 	pipelineLayoutInfo.setPushConstantRangeCount(0); // Optional
 	pipelineLayoutInfo.setPPushConstantRanges(nullptr); // Optional
 
@@ -821,6 +843,22 @@ void HelloTriangleApplication::copyBuffer(vk::Buffer const& srcBuffer, vk::Buffe
 	graphicsQueue.waitIdle();
 }
 
+void HelloTriangleApplication::createUniformBuffers()
+{
+	vk::DeviceSize const bufferSize = sizeof(UniformBufferObject);
+
+	uniformBuffers.resize(swapChainImages.size());
+	uniformBuffersMemory.resize(swapChainImages.size());
+
+	for (size_t i = 0; i < swapChainImages.size(); ++i)
+	{
+		createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			uniformBuffers[i], uniformBuffersMemory[i]
+		);
+	}
+}
+
 void HelloTriangleApplication::createCommandBuffers()
 {
 	vk::CommandBufferAllocateInfo allocInfo;
@@ -912,6 +950,8 @@ void HelloTriangleApplication::drawFrame()
 	
 	uint32_t const imageIndex = res.value;
 
+	updateUniformBuffer(imageIndex);
+
 	vk::SubmitInfo submitInfo;
 	
 	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
@@ -960,6 +1000,25 @@ void HelloTriangleApplication::drawFrame()
 	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+void HelloTriangleApplication::updateUniformBuffer(uint32_t currentImage)
+{
+	static auto const startTime = std::chrono::high_resolution_clock::now();
+
+	auto const currentTime = std::chrono::high_resolution_clock::now();
+
+	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	UniformBufferObject ubo;
+	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+	ubo.proj[1][1] *= -1; // invert Y for Vulkan
+
+	auto const data = device->mapMemory(uniformBuffersMemory[currentImage].get(), 0, sizeof(ubo));
+	memcpy(data, &ubo, static_cast<size_t>(sizeof(ubo)));
+	device->unmapMemory(uniformBuffersMemory[currentImage].get());
+}
+
 void HelloTriangleApplication::cleanup()
 {
 
@@ -982,13 +1041,17 @@ void HelloTriangleApplication::recreateSwapChain()
 	createRenderPass();
 	createGraphicsPipeline();
 	createFramebuffers();
+	createUniformBuffers();
 	createCommandBuffers();
+	
 }
 
 void HelloTriangleApplication::creanupSwapChain()
 {
 	swapChainFramebuffers.clear();
 	commandBuffers.clear();
+	uniformBuffers.clear();
+	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
 	pipelineLayout.reset();
 	renderPass.reset();
