@@ -14,7 +14,7 @@
 #include <array>
 
 
-class Vertex
+class glmVertex
 {
 public:
 	glm::vec2 pos;
@@ -29,27 +29,27 @@ public:
 
 // #######+++++++ Implementation +++++++#######
 
-inline vk::VertexInputBindingDescription Vertex::getBindingDescription()
+inline vk::VertexInputBindingDescription glmVertex::getBindingDescription()
 {
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.setBinding(0);
-	bindingDescription.setStride(sizeof(Vertex));
+	bindingDescription.setStride(sizeof(glmVertex));
 	bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
 	return bindingDescription;
 }
 
-inline std::array<vk::VertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions()
+inline std::array<vk::VertexInputAttributeDescription, 2> glmVertex::getAttributeDescriptions()
 {
 	std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions;
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
 	attributeDescriptions[0].setFormat(vk::Format::eR32G32Sfloat);
-	attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
+	attributeDescriptions[0].setOffset(offsetof(glmVertex, pos));
 	attributeDescriptions[1].setBinding(0);
 	attributeDescriptions[1].setLocation(1);
 	attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[1].setOffset(offsetof(Vertex, color));
+	attributeDescriptions[1].setOffset(offsetof(glmVertex, color));
 
 
 	return attributeDescriptions;

@@ -1,21 +1,21 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File: HelloTriangleApplication.h
-// Date: 21.08.2019
+// File: VulkanParticleRenderer.h
+// Date: 13.10.2019
 // Version: 1
 // Author: Christian Steinbrecher
-// Description: Draws a simple triangle
+// Description: Drawing particles with Vulkan
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
+#include "ParticleRenderer.h"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
 
 #include <vulkan/vulkan.hpp>
 
 #include <glm/glm.hpp>
-
 
 #include "upGLFWWindow.h"
 #include "Vertex.h"
@@ -27,9 +27,11 @@
 #include <optional>
 
 
-
-class HelloTriangleApplication{
+class VulkanParticleRenderer : public ParticleRenderer {
 public:
+	// Geerbt über ParticleRenderer
+	virtual void doDraw(std::vector<Vertex> const & vertices) override;
+
 	void run();
 
 private:
@@ -237,7 +239,7 @@ private:
 
 	// Vertex input description
 
-	std::vector<Vertex> const vertices =
+	std::vector<glmVertex> vertices =
 	{
 		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
 		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -271,6 +273,8 @@ private:
 	vk::UniqueDescriptorPool descriptorPool;
 
 	std::vector<vk::DescriptorSet> descriptorSets;
+
+
 };
 
 

@@ -15,17 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="HelloTriangleApplication.cpp">
+    <ClCompile Include="VulkanParticleRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HelloTriangleApplication.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="upGLFWWindow.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -35,5 +29,19 @@
     <ClInclude Include="Vertex.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="VulkanParticleRenderer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleRenderer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="C:\VulkanSDK\1.1.114.0\Lib\vulkan-1.lib">
+      <Filter>Ressourcendateien</Filter>
+    </Library>
+    <Library Include="extern\glfw-3.3.bin.WIN64\lib-vc2019\glfw3.lib">
+      <Filter>Ressourcendateien</Filter>
+    </Library>
   </ItemGroup>
 </Project>
