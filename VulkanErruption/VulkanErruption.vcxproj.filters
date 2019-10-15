@@ -35,6 +35,9 @@
     <ClInclude Include="ParticleRenderer.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="glfwFPS.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\VulkanSDK\1.1.114.0\Lib\vulkan-1.lib">

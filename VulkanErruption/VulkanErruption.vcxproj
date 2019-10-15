@@ -171,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="File.h" />
+    <ClInclude Include="glfwFPS.h" />
     <ClInclude Include="ParticleRenderer.h" />
     <ClInclude Include="VulkanParticleRenderer.h" />
     <ClInclude Include="upGLFWWindow.h" />

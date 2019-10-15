@@ -1002,6 +1002,7 @@ void VulkanParticleRenderer::mainLoop()
 	while (!glfwWindowShouldClose(window.get())) {
 		glfwPollEvents();
 		drawFrame();
+		mFPS.showFPS(window.get());
 	}
 
 	device->waitIdle();

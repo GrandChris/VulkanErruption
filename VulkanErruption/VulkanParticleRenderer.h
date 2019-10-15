@@ -19,6 +19,7 @@
 
 #include "upGLFWWindow.h"
 #include "Vertex.h"
+#include "glfwFPS.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -275,6 +276,8 @@ private:
 	std::vector<vk::DescriptorSet> descriptorSets;
 
 
+	// Show FPS
+	glfwFPS mFPS;
 };
 
 

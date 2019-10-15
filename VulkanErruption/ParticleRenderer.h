@@ -42,9 +42,10 @@ public:
 	// Draws 
 	void draw(std::vector<Vertex> const & vertices);
 
+	// Gets a Vulkan implementation of this interface
 	static uPtr createVulkan();
 
-	// waits for thread to finish
+	// Waits for the thread to finish
 	void join();
 
 private:
