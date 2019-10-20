@@ -13,37 +13,67 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Headerdateien\RenderObject">
+      <UniqueIdentifier>{6bcc24ce-8e63-4e08-a2d1-d9c8384e7ef8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Renderer">
+      <UniqueIdentifier>{8021af45-f0da-4bd2-88d2-7e6120c58100}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\RenderObject\default">
+      <UniqueIdentifier>{c7568ad6-7862-4492-83e8-0fd7741148d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\RenderObject\indexLogo">
+      <UniqueIdentifier>{228b0b67-24ab-47b8-84a0-9a20de78c944}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VulkanParticleRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanStaticPointRenderObject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanTwoPointMovingRenderObject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="upGLFWWindow.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="File.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanParticleRenderer.h">
-      <Filter>Headerdateien</Filter>
+    <ClInclude Include="RenderObject.h">
+      <Filter>Headerdateien\RenderObject</Filter>
     </ClInclude>
     <ClInclude Include="ParticleRenderer.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="upGLFWWindow.h">
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanParticleRenderer.h">
+      <Filter>Headerdateien\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="glfwFPS.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\default</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanStaticPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\default</Filter>
+    </ClInclude>
+    <ClInclude Include="TwoPointMovingRenderObject.h">
+      <Filter>Headerdateien\RenderObject\indexLogo</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTwoPointMovingRenderObject.h">
+      <Filter>Headerdateien\RenderObject\indexLogo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="C:\VulkanSDK\1.1.114.0\Lib\vulkan-1.lib">
+    <Library Include="extern\glfw-3.3.bin.WIN64\lib-vc2019\glfw3.lib">
       <Filter>Ressourcendateien</Filter>
     </Library>
-    <Library Include="extern\glfw-3.3.bin.WIN64\lib-vc2019\glfw3.lib">
+    <Library Include="C:\VulkanSDK\1.1.114.0\Lib\vulkan-1.lib">
       <Filter>Ressourcendateien</Filter>
     </Library>
   </ItemGroup>

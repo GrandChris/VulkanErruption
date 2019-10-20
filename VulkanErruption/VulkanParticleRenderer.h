@@ -18,7 +18,7 @@
 #include <glm/glm.hpp>
 
 #include "upGLFWWindow.h"
-#include "Vertex.h"
+#include "glmVertex.h"
 #include "glfwFPS.h"
 
 #include <iostream>
@@ -30,12 +30,23 @@
 
 class VulkanParticleRenderer : public ParticleRenderer {
 public:
+	// C-Tor
+	VulkanParticleRenderer();
+
+	// D-Tor
+	~VulkanParticleRenderer();
+
 	// Geerbt über ParticleRenderer
-	virtual void doDraw(std::vector<Vertex> const & vertices) override;
+	//virtual void doDraw(std::vector<Vertex> const & vertices) override;
 
-	void run();
+	// Geerbt über ParticleRenderer
+	virtual void create(RenderObject::uPtr const& obj) override;
+	virtual void draw(RenderObject::uPtr const& obj) override;
+	virtual void cleanup(RenderObject::uPtr const& obj) override;
 
-private:
+	virtual void run() override;
+
+public:
 	struct QueueFamilyIndices;
 	struct SwapChainSupportDetails;
 
@@ -83,7 +94,12 @@ private:
 
 		void createDescriptorSetLayout();
 
-		void createGraphicsPipeline();
+		void createGraphicsPipeline(vk::UniquePipelineLayout & pipelineLayout, 
+			vk::UniquePipeline & graphicsPipeline,
+			std::vector<char> const & vertShaderCode, std::vector<char> const & fragShaderCode,
+			vk::VertexInputBindingDescription const & bindingDescription,
+			std::vector<vk::VertexInputAttributeDescription>const & attributeDescriptions);
+		//void createGraphicsPipeline();
 
 			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
 
@@ -91,7 +107,10 @@ private:
 
 		void createCommandPool();
 
-		void createVertexBuffer();
+		template<typename T>
+		void createVertexBuffer(vk::UniqueDeviceMemory & vertexBufferMemory, vk::UniqueBuffer & vertexBuffer,
+			std::vector<T> const& vertices);
+		//void createVertexBuffer();
 			
 			uint32_t findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const & properties);
 
@@ -100,21 +119,40 @@ private:
 
 			void copyBuffer(vk::Buffer const & srcBuffer, vk::Buffer & dstBuffer, vk::DeviceSize size);
 
-		void createUniformBuffers();
+		void createUniformBuffers(std::vector<vk::UniqueDeviceMemory>& uniformBuffersMemory,
+				std::vector<vk::UniqueBuffer>& uniformBuffers, size_t const UniformBufferObjectSize);
+		//void createUniformBuffers();
 
 			void createDescriptorPool();
 
-			void createDescriptorSets();
+			void createDescriptorSets(std::vector<vk::DescriptorSet> & descriptorSets,
+				std::vector<vk::UniqueBuffer> const & uniformBuffers,
+				size_t const UniformBufferObjectSize);
+			//void createDescriptorSets();
 
-		void createCommandBuffers();
+		void createCommandBuffers(std::vector<vk::UniqueCommandBuffer> & commandBuffers,
+			vk::UniquePipelineLayout const & pipelineLayout,
+			vk::UniquePipeline const & graphicsPipeline,
+			vk::UniqueBuffer const & vertexBuffer,
+			std::vector<vk::DescriptorSet> const & descriptorSets,
+			size_t const verticesCount);
+		//void createCommandBuffers();
 
 		void createSyncObjects();
 
 	void mainLoop();
 
-		void drawFrame();
+		template<typename T>
+		void drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers,
+			std::vector<vk::UniqueDeviceMemory> const & uniformBuffersMemory, 
+			T const & uniformBufferObject);
+		//void drawFrame();
 
-			void updateUniformBuffer(uint32_t currentImage);
+			template<typename T>
+			void updateUniformBuffer(uint32_t currentImage,
+				std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory,
+				T const& uniformBufferObject);
+			//void updateUniformBuffer(uint32_t currentImage);
 
 	void cleanup();
 
@@ -124,8 +162,8 @@ private:
 
 	// Instance
 
-	const int WIDTH = 800;
-	const int HEIGHT = 600;
+	int WIDTH = 800;
+	int HEIGHT = 600;
 
 	upGLFWWindow window;
 
@@ -206,11 +244,11 @@ private:
 
 	// Fixed functions
 
-	vk::UniquePipelineLayout pipelineLayout;
+	//vk::UniquePipelineLayout pipelineLayout;
 
 	// Graphics pipeline
 
-	vk::UniquePipeline graphicsPipeline;
+	//vk::UniquePipeline graphicsPipeline;
 
 	// Framebuffers
 
@@ -220,7 +258,7 @@ private:
 
 	vk::UniqueCommandPool commandPool;
 
-	std::vector<vk::UniqueCommandBuffer> commandBuffers;
+	//std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
 	// Rendering and presentation
 
@@ -240,45 +278,179 @@ private:
 
 	// Vertex input description
 
-	std::vector<glmVertex> vertices =
-	{
-		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-	};
+	//std::vector<glmVertex> vertices =
+	//{
+	//	{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+	//	{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+	//	{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	//};
 
 	// Vertex buffer creation
 
-	vk::UniqueDeviceMemory vertexBufferMemory;
+	//vk::UniqueDeviceMemory vertexBufferMemory;
 
-	vk::UniqueBuffer vertexBuffer;
+	//vk::UniqueBuffer vertexBuffer;
 
 	// Staging buffer
 
 	// Descriptor layout and buffer
 
-	struct UniformBufferObject
-	{
-		alignas(16) glm::mat4 model;
-		alignas(16) glm::mat4 view;
-		alignas(16) glm::mat4 proj;
-	};
+	//struct UniformBufferObject
+	//{
+	//	alignas(16) glm::mat4 model;
+	//	alignas(16) glm::mat4 view;
+	//	alignas(16) glm::mat4 proj;
+	//};
 
 	vk::UniqueDescriptorSetLayout descriptorSetLayout;
 	
-	std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;
+	//std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;
 
-	std::vector<vk::UniqueBuffer> uniformBuffers;
+	//std::vector<vk::UniqueBuffer> uniformBuffers;
 
 	// Descriptor pool and sets
 	vk::UniqueDescriptorPool descriptorPool;
 
-	std::vector<vk::DescriptorSet> descriptorSets;
+	//std::vector<vk::DescriptorSet> descriptorSets;
 
 
 	// Show FPS
 	glfwFPS mFPS;
+
+
 };
 
 
+// #######+++++++ Implementation +++++++#######
 
+#define GLM_FORCE_RADIANS
+#include <glm/gtc/matrix_transform.hpp>
+
+template<typename T>
+inline void VulkanParticleRenderer::createVertexBuffer(vk::UniqueDeviceMemory& vertexBufferMemory, vk::UniqueBuffer& vertexBuffer, std::vector<T> const& vertices)
+{
+	assert(device);
+	
+	vk::DeviceSize const bufferSize = sizeof(vertices.front()) * vertices.size();
+	
+	vk::UniqueDeviceMemory stagingBufferMemory;
+	vk::UniqueBuffer stagingBuffer;
+	
+	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		stagingBuffer, stagingBufferMemory
+	);
+	
+	auto const data = device->mapMemory(stagingBufferMemory.get(), 0, bufferSize);
+	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+	device->unmapMemory(stagingBufferMemory.get());
+	
+	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		vertexBuffer, vertexBufferMemory
+	);
+	
+	copyBuffer(stagingBuffer.get(), vertexBuffer.get(), bufferSize);
+}
+
+template<typename T>
+inline void VulkanParticleRenderer::drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers, 
+	std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, 
+	T const& uniformBufferObject)
+{
+	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
+
+	vk::ResultValue<uint32_t> res(vk::Result::eSuccess, 0);
+	try {
+		res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
+		if (res.result == vk::Result::eErrorOutOfDateKHR)	// window was resized, swap chain is now incompatible
+		{
+			recreateSwapChain();
+			return;
+		}
+		else if (res.result != vk::Result::eSuccess && res.result != vk::Result::eSuboptimalKHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const&)
+	{
+		recreateSwapChain();
+		return;
+	}
+
+	uint32_t const imageIndex = res.value;
+
+	updateUniformBuffer(imageIndex, uniformBuffersMemory, uniformBufferObject);
+
+	vk::SubmitInfo submitInfo;
+
+	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	submitInfo.setWaitSemaphoreCount(1);
+	submitInfo.setPWaitSemaphores(waitSemaphore);
+	submitInfo.setPWaitDstStageMask(waitStages);
+	submitInfo.setCommandBufferCount(1);
+	submitInfo.setPCommandBuffers(&commandBuffers[imageIndex].get());
+
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].get() };
+	submitInfo.setSignalSemaphoreCount(1);
+	submitInfo.setPSignalSemaphores(signalSemaphores);
+
+	device->resetFences(inFlightFences[currentFrame].get());
+
+	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
+
+	vk::PresentInfoKHR presentInfo;
+	presentInfo.setWaitSemaphoreCount(1);
+	presentInfo.setPWaitSemaphores(signalSemaphores);
+	vk::SwapchainKHR swapChains[] = { swapChain.get() };
+	presentInfo.setSwapchainCount(1);
+	presentInfo.setPSwapchains(swapChains);
+	presentInfo.setPImageIndices(&imageIndex);
+	presentInfo.setPResults(nullptr); // optional
+
+	try {
+		auto const resPresent = presentQueue.presentKHR(presentInfo);
+		if (resPresent == vk::Result::eErrorOutOfDateKHR || resPresent == vk::Result::eSuboptimalKHR || framebufferResized)	// window was resized, swap chain is now incompatible
+		{
+			framebufferResized = false;
+			recreateSwapChain();
+		}
+		else if (res.result != vk::Result::eSuccess) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const&)
+	{
+		framebufferResized = false;
+		recreateSwapChain();
+	}
+
+
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+template<typename T>
+inline void VulkanParticleRenderer::updateUniformBuffer(uint32_t currentImage, 
+	std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, 
+	T const& uniformBufferObject)
+{
+	assert(!uniformBuffersMemory.empty());
+	assert(device);
+
+	static auto const startTime = std::chrono::high_resolution_clock::now();
+
+	auto const currentTime = std::chrono::high_resolution_clock::now();
+
+	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	T ubo = uniformBufferObject;
+	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+	ubo.proj[1][1] *= -1; // invert Y for Vulkan
+
+	auto const data = device->mapMemory(uniformBuffersMemory[currentImage].get(), 0, sizeof(ubo));
+	memcpy(data, &ubo, static_cast<size_t>(sizeof(ubo)));
+	device->unmapMemory(uniformBuffersMemory[currentImage].get());
+}
