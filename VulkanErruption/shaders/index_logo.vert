@@ -15,9 +15,11 @@ layout(location = 2) in vec3 inColor;
 
 layout(location = 0) out vec3 fragColor;
 
+#define M_PI 3.1415926535897932384626433832795
+
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inStopPosition, 1.0);
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inStartPosition + (inStopPosition - inStartPosition) * cos( 2 * M_PI * abs(ubo.time)/4) , 1.0);
     
-    gl_PointSize = ubo.time;
+    gl_PointSize = 1.0f;
     fragColor = inColor;
 }

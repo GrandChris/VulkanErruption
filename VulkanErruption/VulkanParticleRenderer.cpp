@@ -93,30 +93,10 @@ void VulkanParticleRenderer::cleanup(RenderObject::uPtr const& obj)
 
 void VulkanParticleRenderer::run() 
 {
-	//static std::mutex mtx;
-
-	//mtx.lock();
-	//	initWindow();	// glfw does not support mutlithreading
-	//mtx.unlock();
-
-	//initVulkan();
 	mainLoop();
 	cleanup();
 }
 
-//void VulkanParticleRenderer::doDraw(std::vector<Vertex> const& vert)
-//{
-//	std::vector<glmVertex> glmVert;
-//	glmVert.reserve(vert.size());
-//	for (auto const& elem : vert)
-//	{
-//		glmVert.push_back({ { elem.pos.x, elem.pos.y }, {elem.color.r, elem.color.g, elem.color.b} });
-//	}
-//
-//	vertices = glmVert;
-//
-//	run();
-//}
 
 void VulkanParticleRenderer::initWindow()
 {
@@ -128,7 +108,9 @@ void VulkanParticleRenderer::initWindow()
 	window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr));
 	//WIDTH = 2560;
 	//HEIGHT = 1440;
-	//window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", glfwGetPrimaryMonitor(), nullptr));
+	/*WIDTH = 800;
+	HEIGHT = 600;
+	window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", glfwGetPrimaryMonitor(), nullptr));*/
 
 	glfwSetWindowUserPointer(window.get(), this);
 	glfwSetFramebufferSizeCallback(window.get(), framebufferResizeCallback);
@@ -146,8 +128,9 @@ void VulkanParticleRenderer::initVulkan()
 	createRenderPass();
 	createDescriptorSetLayout();
 	//createGraphicsPipeline();
-	createFramebuffers();
 	createCommandPool();
+	createDepthResources();
+	createFramebuffers();
 	//createVertexBuffer();
 	//createUniformBuffers();
 	createDescriptorPool();
@@ -582,17 +565,33 @@ void VulkanParticleRenderer::createRenderPass()
 	colorAttachmentRef.setAttachment(0);
 	colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
+	vk::AttachmentDescription depthAttachment;
+	depthAttachment.setFormat(findDepthFormat());
+	depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+	depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+	depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+	depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+	depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+	depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+	vk::AttachmentReference depthAttachmentRef;
+	depthAttachmentRef.setAttachment(1);
+	depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
 	vk::SubpassDescription subpass;
 	subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 	subpass.setColorAttachmentCount(1);
 	subpass.setPColorAttachments(&colorAttachmentRef);
+	subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+
+	std::array<vk::AttachmentDescription, 2> attachements = { colorAttachment , depthAttachment };
 
 	vk::RenderPassCreateInfo renderPassInfo;
-	renderPassInfo.setAttachmentCount(1);
-	renderPassInfo.setPAttachments(&colorAttachment);
+	renderPassInfo.setAttachmentCount(static_cast<uint32_t>(attachements.size()));
+	renderPassInfo.setPAttachments(attachements.data());
 	renderPassInfo.setSubpassCount(1);
 	renderPassInfo.setPSubpasses(&subpass);
-
 
 	vk::SubpassDependency dependency;
 	dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
@@ -753,6 +752,17 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	pipelineLayoutInfo.setPushConstantRangeCount(0); // Optional
 	pipelineLayoutInfo.setPPushConstantRanges(nullptr); // Optional
 
+	vk::PipelineDepthStencilStateCreateInfo depthStencil = {};
+	depthStencil.setDepthTestEnable(VK_TRUE);
+	depthStencil.setDepthWriteEnable(VK_TRUE);
+	depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+	depthStencil.setDepthBoundsTestEnable(VK_FALSE);
+	depthStencil.setMinDepthBounds(0.0f); // Optional
+	depthStencil.setMaxDepthBounds(1.0f); // Optional
+	depthStencil.setStencilTestEnable(VK_FALSE);
+	//depthStencil.setFront(); // Optional
+	//depthStencil.setBack(); // Optional
+
 	pipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutInfo);
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
@@ -763,7 +773,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	pipelineInfo.setPViewportState(&viewportState);
 	pipelineInfo.setPRasterizationState(&rasterizer);
 	pipelineInfo.setPMultisampleState(&multisampling);
-	pipelineInfo.setPDepthStencilState(nullptr); // optional
+	pipelineInfo.setPDepthStencilState(&depthStencil); // optional
 	pipelineInfo.setPColorBlendState(&colorBlending);
 	pipelineInfo.setPDynamicState(nullptr); // optional
 	pipelineInfo.setLayout(pipelineLayout.get());
@@ -774,158 +784,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 
 	graphicsPipeline = device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
 }
-//
-//void VulkanParticleRenderer::createGraphicsPipeline()
-//{
-//	auto const vertShaderCode = vert_spv;  //readFile("shaders/vert.spv");
-//	auto const fragShaderCode = frag_spv;  //readFile("shaders/frag.spv");
-//
-//	auto const vertShaderModule = createShaderModule(vertShaderCode);
-//	auto const fragShaderModule = createShaderModule(fragShaderCode);
-//
-//	vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-//	vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-//	vertShaderStageInfo.setModule(vertShaderModule.get());
-//	vertShaderStageInfo.setPName("main");
-//
-//	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-//	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-//	fragShaderStageInfo.setModule(fragShaderModule.get());
-//	fragShaderStageInfo.setPName("main");
-//
-//	vk::PipelineShaderStageCreateInfo const shaderStages[] = {
-//		vertShaderStageInfo,
-//		fragShaderStageInfo
-//	};
-//
-//	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-//
-//	auto bindingDescription = glmVertex::getBindingDescription();
-//	auto attributeDescriptions = glmVertex::getAttributeDescriptions();
-//
-//	vertexInputInfo.setVertexBindingDescriptionCount(1);
-//	vertexInputInfo.setPVertexBindingDescriptions(&bindingDescription);
-//	vertexInputInfo.setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributeDescriptions.size()));
-//	vertexInputInfo.setPVertexAttributeDescriptions(attributeDescriptions.data());
-//
-//	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-//
-//	//inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-//	inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
-//
-//	inputAssembly.setPrimitiveRestartEnable(VK_FALSE);
-//
-//	vk::Viewport viewport;
-//	viewport.setX(0.0f);
-//	viewport.setY(0.0f);
-//	viewport.setWidth(static_cast<float>(swapChainExtent.width));
-//	viewport.setHeight(static_cast<float>(swapChainExtent.height));
-//	viewport.setMaxDepth(0.0f);
-//	viewport.setMaxDepth(1.0f);
-//
-//	vk::Rect2D scissor;
-//	scissor.setOffset({ 0, 0 });
-//	scissor.setExtent(swapChainExtent);
-//
-//	vk::PipelineViewportStateCreateInfo viewportState;
-//	viewportState.setViewportCount(1);
-//	viewportState.setPViewports(&viewport);
-//	viewportState.setScissorCount(1);
-//	viewportState.setPScissors(&scissor);
-//
-//	vk::PipelineRasterizationStateCreateInfo rasterizer;
-//	rasterizer.setDepthClampEnable(VK_FALSE);
-//	rasterizer.setRasterizerDiscardEnable(VK_FALSE);
-//	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
-//	rasterizer.setLineWidth(1.0f);
-//	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-//	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
-//	rasterizer.setDepthBiasEnable(VK_FALSE);
-//	rasterizer.setDepthBiasConstantFactor(0.0f); // Optional
-//	rasterizer.setDepthBiasClamp(0.0f); // Optional
-//	rasterizer.setDepthBiasSlopeFactor(0.0f); // Optional
-//
-//	vk::PipelineMultisampleStateCreateInfo multisampling;
-//	multisampling.setSampleShadingEnable(VK_FALSE);
-//	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-//	multisampling.setMinSampleShading(1.0f); // Optional
-//	multisampling.setPSampleMask(nullptr); // Optional
-//	multisampling.setAlphaToCoverageEnable(VK_FALSE); // Optional
-//	multisampling.setAlphaToOneEnable(VK_FALSE); // Optional
-//
-//	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-//	colorBlendAttachment.setColorWriteMask(
-//		vk::ColorComponentFlagBits::eR |
-//		vk::ColorComponentFlagBits::eG |
-//		vk::ColorComponentFlagBits::eB |
-//		vk::ColorComponentFlagBits::eA 
-//	);
-//	
-//	constexpr bool alphaBlending = false;
-//	if constexpr (!alphaBlending)
-//	{
-//		colorBlendAttachment.setBlendEnable(VK_FALSE);
-//		colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne); // Optional
-//		colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero); // Optional
-//		colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd); // Optional
-//		colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne); // Optional
-//		colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero); // Optional
-//		colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd); // Optional
-//	}
-//	else
-//	{
-//		colorBlendAttachment.setBlendEnable(VK_TRUE);
-//		colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha); // Optional
-//		colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha); // Optional
-//		colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd); // Optional
-//		colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne); // Optional
-//		colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero); // Optional
-//		colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd); // Optional
-//	}
-//	
-//	vk::PipelineColorBlendStateCreateInfo colorBlending;
-//	colorBlending.setLogicOpEnable(VK_FALSE);
-//	colorBlending.setLogicOp(vk::LogicOp::eCopy); // Optional
-//	colorBlending.setAttachmentCount(1);
-//	colorBlending.setPAttachments(&colorBlendAttachment);
-//	colorBlending.setBlendConstants({ 0.0f, 0.0f, 0.0f, 0.0f }); // Optional
-//
-//	vk::DynamicState dynamicStates[] = {
-//		vk::DynamicState::eViewport,
-//		vk::DynamicState::eLineWidth
-//	};
-//
-//	vk::PipelineDynamicStateCreateInfo dynamicState;
-//	dynamicState.setDynamicStateCount(2);
-//	dynamicState.setPDynamicStates(dynamicStates);
-//	
-//	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-//	pipelineLayoutInfo.setSetLayoutCount(1); 
-//	pipelineLayoutInfo.setPSetLayouts(&descriptorSetLayout.get()); 
-//	pipelineLayoutInfo.setPushConstantRangeCount(0); // Optional
-//	pipelineLayoutInfo.setPPushConstantRanges(nullptr); // Optional
-//
-//	pipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutInfo);
-//
-//	vk::GraphicsPipelineCreateInfo pipelineInfo;
-//	pipelineInfo.setStageCount(2);
-//	pipelineInfo.setPStages(shaderStages);
-//	pipelineInfo.setPVertexInputState(&vertexInputInfo);
-//	pipelineInfo.setPInputAssemblyState(&inputAssembly);
-//	pipelineInfo.setPViewportState(&viewportState);
-//	pipelineInfo.setPRasterizationState(&rasterizer);
-//	pipelineInfo.setPMultisampleState(&multisampling);
-//	pipelineInfo.setPDepthStencilState(nullptr); // optional
-//	pipelineInfo.setPColorBlendState(&colorBlending);
-//	pipelineInfo.setPDynamicState(nullptr); // optional
-//	pipelineInfo.setLayout(pipelineLayout.get());
-//	pipelineInfo.setRenderPass(renderPass.get());
-//	pipelineInfo.setSubpass(0);
-//	//pipelineInfo.setBasePipelineHandle(); // Optional
-//	pipelineInfo.setBasePipelineIndex(-1); // Optional
-//
-//	graphicsPipeline = device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
-//}
+
 
 vk::UniqueShaderModule VulkanParticleRenderer::createShaderModule(std::vector<char> const& code)
 {
@@ -943,12 +802,13 @@ void VulkanParticleRenderer::createFramebuffers()
 	for (auto const& swapImageView : swapChainImageViews)
 	{
 		vk::ImageView attachments[] = {
-			swapImageView.get()
+			swapImageView.get(),
+			depthImageView.get()
 		};
 
 		vk::FramebufferCreateInfo framebufferInfo;
 		framebufferInfo.setRenderPass(renderPass.get());
-		framebufferInfo.setAttachmentCount(1);
+		framebufferInfo.setAttachmentCount(static_cast<uint32_t>(std::size(attachments)));
 		framebufferInfo.setPAttachments(attachments);
 		framebufferInfo.setWidth(swapChainExtent.width);
 		framebufferInfo.setHeight(swapChainExtent.height);
@@ -969,30 +829,99 @@ void VulkanParticleRenderer::createCommandPool()
 	commandPool = device->createCommandPoolUnique(poolInfo);
 }
 
-//
-//void VulkanParticleRenderer::createVertexBuffer()
-//{
-//	vk::DeviceSize const bufferSize = sizeof(vertices.front()) * vertices.size();
-//
-//	vk::UniqueDeviceMemory stagingBufferMemory;
-//	vk::UniqueBuffer stagingBuffer;
-//
-//	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-//		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-//		stagingBuffer, stagingBufferMemory
-//	);
-//
-//	auto const data = device->mapMemory(stagingBufferMemory.get(), 0, bufferSize);
-//		memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-//	device->unmapMemory(stagingBufferMemory.get());
-//
-//	createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
-//		vk::MemoryPropertyFlagBits::eDeviceLocal,
-//		vertexBuffer, vertexBufferMemory
-//	);
-//
-//	copyBuffer(stagingBuffer.get(), vertexBuffer.get(), bufferSize);
-//}
+void VulkanParticleRenderer::createDepthResources()
+{
+	vk::Format const depthFormat = findDepthFormat();
+
+	createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, 
+		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
+		vk::MemoryPropertyFlagBits::eDeviceLocal, 
+		depthImage, depthImageMemory);
+
+	depthImageView = createImageView(depthImage.get(), depthFormat, vk::ImageAspectFlagBits::eDepth);
+
+}
+
+vk::Format VulkanParticleRenderer::findDepthFormat()
+{
+	return findSupportedFormat(
+		{vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+		vk::ImageTiling::eOptimal,
+		vk::FormatFeatureFlagBits::eDepthStencilAttachment
+	);
+}
+
+vk::Format VulkanParticleRenderer::findSupportedFormat(std::vector<vk::Format> const& candidates, 
+	vk::ImageTiling tiling, vk::FormatFeatureFlags features)
+{
+	for (vk::Format format : candidates) {
+		vk::FormatProperties props;
+		physicalDevice.getFormatProperties(format, &props);
+
+		if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+			return format;
+		}
+		else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+			return format;
+		}
+	}
+
+	throw std::runtime_error("failed to find supported format!");
+	return vk::Format();
+}
+
+bool VulkanParticleRenderer::hasStencilComponent(vk::Format format)
+{
+	return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+}
+
+void VulkanParticleRenderer::createImage(uint32_t const width, uint32_t const height,
+	vk::Format const & format, vk::ImageTiling const & tiling, 
+	vk::ImageUsageFlags const & usage, vk::MemoryPropertyFlags const & properties, 
+	vk::UniqueImage& image, vk::UniqueDeviceMemory& imageMemory)
+{
+	vk::ImageCreateInfo imageInfo;
+	imageInfo.setImageType(vk::ImageType::e2D);
+	imageInfo.extent.setWidth(width);
+	imageInfo.extent.setHeight(height);
+	imageInfo.extent.setDepth(1);
+	imageInfo.setMipLevels(1);
+	imageInfo.setArrayLayers(1);
+	imageInfo.setFormat(format);
+	imageInfo.setTiling(tiling);
+	imageInfo.setInitialLayout(vk::ImageLayout::eUndefined);
+	imageInfo.setUsage(usage);
+	imageInfo.setSamples(vk::SampleCountFlagBits::e1);
+	imageInfo.setSharingMode(vk::SharingMode::eExclusive);
+
+	image = device->createImageUnique(imageInfo);
+
+	vk::MemoryRequirements const memRequirements = device->getImageMemoryRequirements(image.get());;
+	
+	vk::MemoryAllocateInfo allocInfo;
+	allocInfo.setAllocationSize(memRequirements.size);
+	allocInfo.setMemoryTypeIndex(findMemoryType(memRequirements.memoryTypeBits, properties));
+
+	imageMemory = device->allocateMemoryUnique(allocInfo);
+
+	device->bindImageMemory(image.get(), imageMemory.get(), 0);
+}
+
+vk::UniqueImageView VulkanParticleRenderer::createImageView(vk::Image const& image, 
+	vk::Format const& format, vk::ImageAspectFlags const& aspectFlags)
+{
+	vk::ImageViewCreateInfo viewInfo;
+	viewInfo.setImage(image);
+	viewInfo.setViewType(vk::ImageViewType::e2D);
+	viewInfo.setFormat(format);
+	viewInfo.subresourceRange.setAspectMask(aspectFlags);
+	viewInfo.subresourceRange.setBaseMipLevel(0);
+	viewInfo.subresourceRange.setLevelCount(1);
+	viewInfo.subresourceRange.setBaseArrayLayer(0);
+	viewInfo.subresourceRange.setLayerCount(1);
+
+	return device->createImageViewUnique(viewInfo);
+}
 
 
 uint32_t VulkanParticleRenderer::findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const& properties)
@@ -1080,22 +1009,7 @@ void VulkanParticleRenderer::createUniformBuffers(std::vector<vk::UniqueDeviceMe
 		);
 	}
 }
-//
-//void VulkanParticleRenderer::createUniformBuffers()
-//{
-//	vk::DeviceSize const bufferSize = sizeof(UniformBufferObject);
-//
-//	uniformBuffers.resize(swapChainImages.size());
-//	uniformBuffersMemory.resize(swapChainImages.size());
-//
-//	for (size_t i = 0; i < swapChainImages.size(); ++i)
-//	{
-//		createBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
-//			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-//			uniformBuffers[i], uniformBuffersMemory[i]
-//		);
-//	}
-//}
+
 
 void VulkanParticleRenderer::createDescriptorPool()
 {
@@ -1145,39 +1059,6 @@ void VulkanParticleRenderer::createDescriptorSets(std::vector<vk::DescriptorSet>
 	}
 }
 
-//
-//void VulkanParticleRenderer::createDescriptorSets()
-//{
-//	std::vector<vk::DescriptorSetLayout> const layouts(swapChainImages.size(), descriptorSetLayout.get());
-//
-//	vk::DescriptorSetAllocateInfo allocInfo;
-//	allocInfo.setDescriptorPool(descriptorPool.get());
-//	allocInfo.setDescriptorSetCount(static_cast<uint32_t>(swapChainImages.size()));
-//	allocInfo.setPSetLayouts(layouts.data());
-//
-//	descriptorSets = device->allocateDescriptorSets(allocInfo);
-//
-//	for (size_t i = 0; i < swapChainImages.size(); i++) 
-//	{
-//		vk::DescriptorBufferInfo bufferInfo;
-//		bufferInfo.setBuffer(uniformBuffers[i].get());
-//		bufferInfo.setOffset(0);
-//		bufferInfo.setRange(sizeof(UniformBufferObject));
-//
-//		vk::WriteDescriptorSet descriptorWrite;
-//		descriptorWrite.setDstSet(descriptorSets[i]);
-//		descriptorWrite.setDstBinding(0);
-//		descriptorWrite.setDstArrayElement(0);
-//		descriptorWrite.setDescriptorType(vk::DescriptorType::eUniformBuffer);
-//		descriptorWrite.setDescriptorCount(1);
-//		descriptorWrite.setPBufferInfo(&bufferInfo);
-//		descriptorWrite.setPImageInfo(nullptr); // Optional
-//		descriptorWrite.setPTexelBufferView(nullptr); // Optional
-//
-//		device->updateDescriptorSets(descriptorWrite, nullptr);
-//	}
-//}
-
 void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers, 
 	vk::UniquePipelineLayout const& pipelineLayout, vk::UniquePipeline const& graphicsPipeline, 
 	vk::UniqueBuffer const& vertexBuffer, std::vector<vk::DescriptorSet> const& descriptorSets, 
@@ -1211,9 +1092,13 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 		renderPassInfo.setFramebuffer(swapChainFramebuffers[i].get());
 		renderPassInfo.renderArea.setOffset({ 0, 0 });
 		renderPassInfo.renderArea.setExtent(swapChainExtent);
-		vk::ClearValue const clearColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
-		renderPassInfo.setClearValueCount(1);
-		renderPassInfo.setPClearValues(&clearColor);
+
+		std::array<vk::ClearValue, 2> clearValues = {};
+		clearValues[0].setColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
+		clearValues[1].setDepthStencil({ 1.0f, 0});
+
+		renderPassInfo.setClearValueCount(static_cast<uint32_t>(clearValues.size()));
+		renderPassInfo.setPClearValues(clearValues.data());
 
 		commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
@@ -1233,51 +1118,7 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 		commandBuffers[i]->end();
 	}
 }
-//
-//void VulkanParticleRenderer::createCommandBuffers()
-//{
-//	vk::CommandBufferAllocateInfo allocInfo;
-//	allocInfo.setCommandPool(commandPool.get());
-//	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-//	allocInfo.setCommandBufferCount(static_cast<uint32_t>(swapChainFramebuffers.size()));
-//
-//	commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
-//
-//	for (size_t i = 0; i < commandBuffers.size(); i++)
-//	{
-//		vk::CommandBufferBeginInfo beginInfo;
-//		//beginInfo.setFlags( ); // Optional
-//		beginInfo.setPInheritanceInfo(nullptr); // Optional
-//
-//		commandBuffers[i]->begin(beginInfo);
-//
-//			vk::RenderPassBeginInfo renderPassInfo;
-//			renderPassInfo.setRenderPass(renderPass.get());
-//			renderPassInfo.setFramebuffer(swapChainFramebuffers[i].get());
-//			renderPassInfo.renderArea.setOffset({ 0, 0 });
-//			renderPassInfo.renderArea.setExtent(swapChainExtent);
-//			vk::ClearValue const clearColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
-//			renderPassInfo.setClearValueCount(1);
-//			renderPassInfo.setPClearValues(&clearColor);
-//
-//			commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-//
-//				commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
-//
-//				//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
-//				//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
-//				//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
-//				commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
-//
-//				commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
-//
-//				commandBuffers[i]->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-//
-//			commandBuffers[i]->endRenderPass();
-//
-//		commandBuffers[i]->end();
-//	}
-//}
+
 
 void VulkanParticleRenderer::createSyncObjects()
 {
@@ -1310,102 +1151,6 @@ void VulkanParticleRenderer::mainLoop()
 }
 
 
-//
-//void VulkanParticleRenderer::drawFrame()
-//{
-//	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
-//	
-//	vk::ResultValue<uint32_t> res(vk::Result::eSuccess, 0);
-//	try {
-//		res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
-//		if (res.result == vk::Result::eErrorOutOfDateKHR)	// window was resized, swap chain is now incompatible
-//		{
-//			recreateSwapChain();
-//			return;
-//		}
-//		else if (res.result != vk::Result::eSuccess && res.result != vk::Result::eSuboptimalKHR) {
-//			throw std::runtime_error("failed to acquire swap chain image!");
-//		}
-//	}
-//	catch (vk::OutOfDateKHRError const &)
-//	{
-//		recreateSwapChain();
-//		return;
-//	}
-//	
-//	uint32_t const imageIndex = res.value;
-//
-//	updateUniformBuffer(imageIndex);
-//
-//	vk::SubmitInfo submitInfo;
-//	
-//	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
-//	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-//	submitInfo.setWaitSemaphoreCount(1);
-//	submitInfo.setPWaitSemaphores(waitSemaphore);
-//	submitInfo.setPWaitDstStageMask(waitStages);
-//	submitInfo.setCommandBufferCount(1);
-//	submitInfo.setPCommandBuffers(&commandBuffers[imageIndex].get());
-//
-//	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].get() };
-//	submitInfo.setSignalSemaphoreCount(1);
-//	submitInfo.setPSignalSemaphores(signalSemaphores);
-//
-//	device->resetFences(inFlightFences[currentFrame].get());
-//
-//	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
-//
-//	vk::PresentInfoKHR presentInfo;
-//	presentInfo.setWaitSemaphoreCount(1);
-//	presentInfo.setPWaitSemaphores(signalSemaphores);
-//	vk::SwapchainKHR swapChains[] = { swapChain.get() };
-//	presentInfo.setSwapchainCount(1);
-//	presentInfo.setPSwapchains(swapChains);
-//	presentInfo.setPImageIndices(&imageIndex);
-//	presentInfo.setPResults(nullptr); // optional
-//
-//	try {
-//		auto const resPresent = presentQueue.presentKHR(presentInfo);
-//		if (resPresent == vk::Result::eErrorOutOfDateKHR || resPresent == vk::Result::eSuboptimalKHR || framebufferResized)	// window was resized, swap chain is now incompatible
-//		{
-//			framebufferResized = false;
-//			recreateSwapChain();
-//		}
-//		else if (res.result != vk::Result::eSuccess) {
-//			throw std::runtime_error("failed to acquire swap chain image!");
-//		}
-//	}
-//	catch (vk::OutOfDateKHRError const & )
-//	{
-//		framebufferResized = false;
-//		recreateSwapChain();
-//	}
-//
-//
-//	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-//}
-
-
-//
-//void VulkanParticleRenderer::updateUniformBuffer(uint32_t currentImage)
-//{
-//	static auto const startTime = std::chrono::high_resolution_clock::now();
-//
-//	auto const currentTime = std::chrono::high_resolution_clock::now();
-//
-//	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-//
-//	UniformBufferObject ubo;
-//	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-//	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-//	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-//	ubo.proj[1][1] *= -1; // invert Y for Vulkan
-//
-//	auto const data = device->mapMemory(uniformBuffersMemory[currentImage].get(), 0, sizeof(ubo));
-//	memcpy(data, &ubo, static_cast<size_t>(sizeof(ubo)));
-//	device->unmapMemory(uniformBuffersMemory[currentImage].get());
-//}
-
 void VulkanParticleRenderer::cleanup()
 {
 
@@ -1427,6 +1172,7 @@ void VulkanParticleRenderer::recreateSwapChain()
 	createImageViews();
 	createRenderPass();
 	//createGraphicsPipeline();
+	createDepthResources();
 	createFramebuffers();
 	//createUniformBuffers();
 	createDescriptorPool();
@@ -1453,6 +1199,9 @@ void VulkanParticleRenderer::cleanupSwapChain()
 	//commandBuffers.clear();
 	//uniformBuffers.clear();
 	//uniformBuffersMemory.clear();
+	depthImageView.reset();
+	depthImage.reset();
+	depthImageMemory.reset();
 	//graphicsPipeline.reset();
 	//pipelineLayout.reset();
 	renderPass.reset();

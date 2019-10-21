@@ -18,7 +18,6 @@
 #include <glm/glm.hpp>
 
 #include "upGLFWWindow.h"
-#include "glmVertex.h"
 #include "glfwFPS.h"
 
 #include <iostream>
@@ -106,6 +105,23 @@ public:
 		void createFramebuffers();
 
 		void createCommandPool();
+
+		void createDepthResources();
+
+			vk::Format findDepthFormat();
+
+				vk::Format findSupportedFormat(std::vector<vk::Format> const& candidates,
+					vk::ImageTiling tiling, vk::FormatFeatureFlags features);
+
+			bool hasStencilComponent(vk::Format format);
+
+			void createImage(uint32_t const width, uint32_t const height, vk::Format const & format,
+				vk::ImageTiling const & tiling, vk::ImageUsageFlags const & usage, 
+				vk::MemoryPropertyFlags const & properties,
+				vk::UniqueImage& image, vk::UniqueDeviceMemory & imageMemory);
+
+			vk::UniqueImageView createImageView(vk::Image const& image, vk::Format const& format,
+				vk::ImageAspectFlags const& aspectFlags);
 
 		template<typename T>
 		void createVertexBuffer(vk::UniqueDeviceMemory & vertexBufferMemory, vk::UniqueBuffer & vertexBuffer,
@@ -314,8 +330,18 @@ public:
 	//std::vector<vk::DescriptorSet> descriptorSets;
 
 
+	// Depth buffering
+	vk::UniqueDeviceMemory depthImageMemory;
+	vk::UniqueImage depthImage;
+	vk::UniqueImageView depthImageView;
+
+
+
 	// Show FPS
 	glfwFPS mFPS;
+
+
+
 
 
 };
@@ -324,6 +350,7 @@ public:
 // #######+++++++ Implementation +++++++#######
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 
 template<typename T>

@@ -106,8 +106,12 @@ void VulkanTwoPointMovingRenderObject::createCommandBuffer(VulkanParticleRendere
 
 void VulkanTwoPointMovingRenderObject::drawFrame(VulkanParticleRenderer& engine)
 {
+	static auto const startTime = std::chrono::high_resolution_clock::now();
+	auto const currentTime = std::chrono::high_resolution_clock::now();
+	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
 	UniformBufferObject ubo;
-	ubo.time = mTime;
+	ubo.time = time;
 	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo);
 }
 
