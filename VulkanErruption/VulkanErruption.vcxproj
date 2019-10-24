@@ -167,17 +167,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="VulkanDynamicPointRenderObject.cpp" />
     <ClCompile Include="VulkanParticleRenderer.cpp" />
     <ClCompile Include="VulkanStaticPointRenderObject.cpp" />
     <ClCompile Include="VulkanTwoPointMovingRenderObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DynamicPointRenderObject.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="glfwFPS.h" />
     <ClInclude Include="ParticleRenderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="StaticPointRenderObject.h" />
     <ClInclude Include="TwoPointMovingRenderObject.h" />
+    <ClInclude Include="VulkanDynamicPointRenderObject.h" />
     <ClInclude Include="VulkanStaticPointRenderObject.h" />
     <ClInclude Include="VulkanParticleRenderer.h" />
     <ClInclude Include="upGLFWWindow.h" />

@@ -105,13 +105,15 @@ void VulkanParticleRenderer::initWindow()
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr));
-	//WIDTH = 2560;
-	//HEIGHT = 1440;
-	/*WIDTH = 800;
-	HEIGHT = 600;
-	window = upGLFWWindow(glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", glfwGetPrimaryMonitor(), nullptr));*/
-
+	if (mFullscreenEnabled == false)
+	{
+		window = upGLFWWindow(glfwCreateWindow(static_cast<int>(mWidth), static_cast<int>(mHeight), "Vulkan", nullptr, nullptr));
+	}
+	else
+	{
+		window = upGLFWWindow(glfwCreateWindow(static_cast<int>(mWidth), static_cast<int>(mHeight), "Vulkan", glfwGetPrimaryMonitor(), nullptr));
+	}
+	
 	glfwSetWindowUserPointer(window.get(), this);
 	glfwSetFramebufferSizeCallback(window.get(), framebufferResizeCallback);
 }
@@ -482,10 +484,23 @@ vk::PresentModeKHR VulkanParticleRenderer::chooseSwapPresentMode(std::vector<vk:
 {
 	for (auto const& availablePresentMode : availablePresentModes)
 	{
-		if (availablePresentMode == vk::PresentModeKHR::eMailbox)
+		if (mVSyncEnabled == false)
 		{
-			return availablePresentMode;
+			if (availablePresentMode == vk::PresentModeKHR::eMailbox)
+			{
+				return availablePresentMode;
+			}
 		}
+		else
+		{
+			if (availablePresentMode == vk::PresentModeKHR::eFifo)
+			{
+				return availablePresentMode;
+			}
+		}
+
+		
+
 	}
 
 	return vk::PresentModeKHR::eFifo;
@@ -1059,10 +1074,11 @@ void VulkanParticleRenderer::createDescriptorSets(std::vector<vk::DescriptorSet>
 	}
 }
 
-void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers, 
-	vk::UniquePipelineLayout const& pipelineLayout, vk::UniquePipeline const& graphicsPipeline, 
-	vk::UniqueBuffer const& vertexBuffer, std::vector<vk::DescriptorSet> const& descriptorSets, 
-	size_t const verticesCount)
+void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers,
+	vk::UniquePipelineLayout const& pipelineLayout,
+	vk::UniquePipeline const& graphicsPipeline, 
+	vk::UniqueBuffer const& vertexBuffer, 
+	std::vector<vk::DescriptorSet> const& descriptorSets, size_t const verticesCount)
 {
 	assert(pipelineLayout);
 	assert(graphicsPipeline);
@@ -1095,7 +1111,7 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 
 		std::array<vk::ClearValue, 2> clearValues = {};
 		clearValues[0].setColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
-		clearValues[1].setDepthStencil({ 1.0f, 0});
+		clearValues[1].setDepthStencil({ 1.0f, 0 });
 
 		renderPassInfo.setClearValueCount(static_cast<uint32_t>(clearValues.size()));
 		renderPassInfo.setPClearValues(clearValues.data());
@@ -1108,6 +1124,67 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 		//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
 		//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
 		commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
+
+		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
+
+		commandBuffers[i]->draw(static_cast<uint32_t>(verticesCount), 1, 0, 0);
+
+		commandBuffers[i]->endRenderPass();
+
+		commandBuffers[i]->end();
+	}
+}
+
+void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers,
+	vk::UniquePipelineLayout const& pipelineLayout, vk::UniquePipeline const& graphicsPipeline, 
+	std::vector<vk::UniqueBuffer> const& vertexBuffers, 
+	std::vector<vk::DescriptorSet> const& descriptorSets, 
+	size_t const verticesCount)
+{
+	assert(pipelineLayout);
+	assert(graphicsPipeline);
+	assert(!vertexBuffers.empty());
+	assert(!descriptorSets.empty());
+	assert(device);
+	assert(commandPool);
+	assert(!swapChainFramebuffers.empty());
+
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.setCommandPool(commandPool.get());
+	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+	allocInfo.setCommandBufferCount(static_cast<uint32_t>(swapChainFramebuffers.size()));
+
+	commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
+
+	for (size_t i = 0; i < commandBuffers.size(); i++)
+	{
+		vk::CommandBufferBeginInfo beginInfo;
+		//beginInfo.setFlags( ); // Optional
+		beginInfo.setPInheritanceInfo(nullptr); // Optional
+
+		commandBuffers[i]->begin(beginInfo);
+
+		vk::RenderPassBeginInfo renderPassInfo;
+		renderPassInfo.setRenderPass(renderPass.get());
+		renderPassInfo.setFramebuffer(swapChainFramebuffers[i].get());
+		renderPassInfo.renderArea.setOffset({ 0, 0 });
+		renderPassInfo.renderArea.setExtent(swapChainExtent);
+
+		std::array<vk::ClearValue, 2> clearValues = {};
+		clearValues[0].setColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
+		clearValues[1].setDepthStencil({ 1.0f, 0 });
+
+		renderPassInfo.setClearValueCount(static_cast<uint32_t>(clearValues.size()));
+		renderPassInfo.setPClearValues(clearValues.data());
+
+		commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
+
+		//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
+		//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
+		//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
+		commandBuffers[i]->bindVertexBuffers(0, vertexBuffers[i].get(), vk::DeviceSize());
 
 		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
 
@@ -1148,6 +1225,7 @@ void VulkanParticleRenderer::mainLoop()
 	}
 
 	device->waitIdle();
+	
 }
 
 
@@ -1225,6 +1303,32 @@ void VulkanParticleRenderer::framebufferResizeCallback(GLFWwindow* window, int w
 	auto app = reinterpret_cast<VulkanParticleRenderer*>(glfwGetWindowUserPointer(window));
 	app->framebufferResized = true;
 }
+
+void VulkanParticleRenderer::setVSync(bool const vsyncEnabled)
+{
+	mVSyncEnabled = true;
+	recreateSwapChain();
+}
+
+void VulkanParticleRenderer::setWindowSize(size_t const widht, size_t const height, bool const fullscreenEnabled)
+{
+	assert(window);
+
+	mWidth = widht;
+	mHeight = height;
+	mFullscreenEnabled = true;
+
+	if (fullscreenEnabled == false)
+	{
+		glfwSetWindowMonitor(window.get(), nullptr, 50, 50, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
+	}
+	else
+	{
+		glfwSetWindowMonitor(window.get(), glfwGetPrimaryMonitor(), 50, 50, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
+	}
+}
+
+
 
 
 

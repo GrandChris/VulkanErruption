@@ -25,6 +25,9 @@
     <Filter Include="Headerdateien\RenderObject\indexLogo">
       <UniqueIdentifier>{228b0b67-24ab-47b8-84a0-9a20de78c944}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\RenderObject\dynamic">
+      <UniqueIdentifier>{a40c7ba7-5760-4185-ab87-2630c1aa21f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VulkanParticleRenderer.cpp">
@@ -34,6 +37,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="VulkanTwoPointMovingRenderObject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanDynamicPointRenderObject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -67,6 +73,12 @@
     </ClInclude>
     <ClInclude Include="VulkanTwoPointMovingRenderObject.h">
       <Filter>Headerdateien\RenderObject\indexLogo</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanDynamicPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
