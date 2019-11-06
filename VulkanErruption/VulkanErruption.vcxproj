@@ -72,22 +72,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>include_advanced;C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;./;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
     <LibraryPath>extern\glfw-3.3.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>include_advanced;C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;./;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
     <LibraryPath>extern\glfw-3.3.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>include_advanced;C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;./;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
     <LibraryPath>extern\glfw-3.3.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>include_advanced;C:\VulkanSDK\1.1.114.0\Include;extern\glm-0.9.9.5\glm;./;extern\glfw-3.3.bin.WIN64\include;$(IncludePath)</IncludePath>
     <LibraryPath>extern\glfw-3.3.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -167,24 +167,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="VulkanDynamicPointRenderObject.cpp" />
-    <ClCompile Include="VulkanParticleRenderer.cpp" />
-    <ClCompile Include="VulkanStaticPointRenderObject.cpp" />
-    <ClCompile Include="VulkanTwoPointMovingRenderObject.cpp" />
+    <ClCompile Include="include_advanced\VulkanCudaPointRenderObject.cpp" />
+    <ClCompile Include="include_advanced\VulkanDynamicPointRenderObject.cpp" />
+    <ClCompile Include="include_advanced\VulkanParticleRenderer.cpp" />
+    <ClCompile Include="include_advanced\VulkanStaticPointRenderObject.cpp" />
+    <ClCompile Include="include_advanced\VulkanTwoPointMovingRenderObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CudaPointRenderObject.h" />
+    <ClInclude Include="CudaVertexBuffer.h" />
     <ClInclude Include="DynamicPointRenderObject.h" />
-    <ClInclude Include="File.h" />
-    <ClInclude Include="glfwFPS.h" />
+    <ClInclude Include="include_advanced\File.h" />
+    <ClInclude Include="include_advanced\glfwFPS.h" />
+    <ClInclude Include="include_advanced\upGLFWWindow.h" />
+    <ClInclude Include="include_advanced\VulkanCudaPointRenderObject.h" />
+    <ClInclude Include="include_advanced\VulkanDynamicPointRenderObject.h" />
+    <ClInclude Include="include_advanced\VulkanParticleRenderer.h" />
+    <ClInclude Include="include_advanced\VulkanStaticPointRenderObject.h" />
+    <ClInclude Include="include_advanced\VulkanTwoPointMovingRenderObject.h" />
+    <ClInclude Include="include_advanced\WindowsSecurityAttributes.h" />
     <ClInclude Include="ParticleRenderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="StaticPointRenderObject.h" />
     <ClInclude Include="TwoPointMovingRenderObject.h" />
-    <ClInclude Include="VulkanDynamicPointRenderObject.h" />
-    <ClInclude Include="VulkanStaticPointRenderObject.h" />
-    <ClInclude Include="VulkanParticleRenderer.h" />
-    <ClInclude Include="upGLFWWindow.h" />
-    <ClInclude Include="VulkanTwoPointMovingRenderObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="C:\VulkanSDK\1.1.114.0\Lib\vulkan-1.lib" />

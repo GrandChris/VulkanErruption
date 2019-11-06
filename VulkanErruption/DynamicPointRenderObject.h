@@ -25,8 +25,9 @@ public:
 
 	struct Vertex
 	{
-		glm::vec2 pos;
+		glm::vec3 pos;
 		glm::vec3 color;
+		float pointSize = 1.0f;
 	};
 
 	struct UniformBufferObject

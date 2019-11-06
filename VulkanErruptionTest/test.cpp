@@ -20,7 +20,7 @@
 
 using namespace std;
 
-TEST(TestRenderObject, DISABLED_simple) {
+TEST(TestRenderObject, simple) {
 
 	bool succes = true;
 
@@ -46,7 +46,7 @@ TEST(TestRenderObject, DISABLED_simple) {
 }
 
 
-TEST(TestRenderObject, DISABLED_twoPoint) {
+TEST(TestRenderObject, twoPoint) {
 
 	bool succes = true;
 
@@ -80,10 +80,10 @@ TEST(TestRenderObject, dynamic) {
 
 	std::vector<DynamicPointRenderObject::Vertex> vertices =
 	{
-		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-		{{-2.0f, 2.0f}, {0.0f, 1.0f, 1.0f}}
+		{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+		{{-2.0f, 2.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
 	};
 
 	auto app = ParticleRenderer::createVulkan();
@@ -91,7 +91,7 @@ TEST(TestRenderObject, dynamic) {
 	auto obj = DynamicPointRenderObject::createVulkan();
 	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex> {
 		static float count = 0;
-		vertices[0].pos.x =  sin(count += 0.001);
+		vertices[0].pos.x =  sin(count += 0.001f);
 
 
 		return vertices;

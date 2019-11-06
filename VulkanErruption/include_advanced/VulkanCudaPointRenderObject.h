@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File: VulkanDynamicPointRenderObject.h
+// File: VulkanCudaPointRenderObject.h
 // Date: 19.10.2019
 // Version: 1
 // Author: Christian Steinbrecher
@@ -9,7 +9,8 @@
 #pragma once
 
 
-#include "DynamicPointRenderObject.h"
+#include "CudaPointRenderObject.h"
+
 
 #include "VulkanParticleRenderer.h"
 
@@ -18,7 +19,7 @@
 #include "shaders/frag_spv.h"
 
 
-class VulkanDynamicPointRenderObject : public DynamicPointRenderObject
+class VulkanCudaPointRenderObject : public CudaPointRenderObject
 {
 public:
 	// Inherited from RenderObject
@@ -41,6 +42,15 @@ private:
 
 	void createVertexBuffer(VulkanParticleRenderer& engine);
 
+		void* getExternalVertexBufferHandle(VulkanParticleRenderer& engine);
+
+		void createVertexBufferExtMem(VulkanParticleRenderer& engine, vk::UniqueDeviceMemory& vertexBufferMemory, vk::UniqueBuffer& vertexBuffer,
+			size_t const bufferSize);
+
+		void createBufferExtMem(VulkanParticleRenderer& engine, vk::DeviceSize const size,
+			vk::BufferUsageFlags const usage, vk::MemoryPropertyFlags const properties,
+			vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory);
+
 	void createUniformBuffer(VulkanParticleRenderer& engine);
 
 	void createDescriptorSets(VulkanParticleRenderer& engine);
@@ -57,8 +67,8 @@ private:
 	vk::UniquePipeline graphicsPipeline;
 
 	// Vertex Buffer
-	std::vector<vk::UniqueDeviceMemory> vertexBufferMemory;
-	std::vector<vk::UniqueBuffer> vertexBuffers;
+	vk::UniqueDeviceMemory vertexBufferMemory;
+	vk::UniqueBuffer vertexBuffer;
 
 	// Uniform Buffers
 	std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;

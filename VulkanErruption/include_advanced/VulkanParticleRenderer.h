@@ -127,7 +127,8 @@ public:
 		void createVertexBuffer(vk::UniqueDeviceMemory & vertexBufferMemory, vk::UniqueBuffer & vertexBuffer,
 			std::vector<T> const& vertices);
 		template<typename T>
-		void createVertexBuffer(vk::UniqueDeviceMemory & stagingBufferMemory, vk::UniqueBuffer & stagingBuffer, vk::UniqueDeviceMemory& vertexBufferMemory, vk::UniqueBuffer& vertexBuffer,
+		void createVertexBuffer(vk::UniqueDeviceMemory & stagingBufferMemory, vk::UniqueBuffer & stagingBuffer, 
+			vk::UniqueDeviceMemory& vertexBufferMemory, vk::UniqueBuffer& vertexBuffer,
 			std::vector<T> const& vertices);
 		//void createVertexBuffer();
 		void createVertexBuffers(std::vector<vk::UniqueDeviceMemory>& vertexBufferMemory,
@@ -249,7 +250,10 @@ public:
 	// Swap chain
 
 	std::vector<const char*> deviceExtensions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		// Cuda extensions
+		VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+		"VK_KHR_external_memory_win32"
 	};
 
 	struct SwapChainSupportDetails {
@@ -530,7 +534,7 @@ inline void VulkanParticleRenderer::updateUniformBuffer(uint32_t currentImage,
 	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count() / 10.0f;
 
 	T ubo = uniformBufferObject;
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.model = glm::mat4(1.0f); // glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1; // invert Y for Vulkan

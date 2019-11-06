@@ -28,57 +28,75 @@
     <Filter Include="Headerdateien\RenderObject\dynamic">
       <UniqueIdentifier>{a40c7ba7-5760-4185-ab87-2630c1aa21f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\RenderObject\Cuda">
+      <UniqueIdentifier>{7b62a9c2-9931-422d-b5ec-f937301315ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VulkanParticleRenderer.cpp">
+    <ClCompile Include="include_advanced\VulkanCudaPointRenderObject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanStaticPointRenderObject.cpp">
+    <ClCompile Include="include_advanced\VulkanDynamicPointRenderObject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanTwoPointMovingRenderObject.cpp">
+    <ClCompile Include="include_advanced\VulkanParticleRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanDynamicPointRenderObject.cpp">
+    <ClCompile Include="include_advanced\VulkanStaticPointRenderObject.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="include_advanced\VulkanTwoPointMovingRenderObject.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="File.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="RenderObject.h">
       <Filter>Headerdateien\RenderObject</Filter>
     </ClInclude>
     <ClInclude Include="ParticleRenderer.h">
       <Filter>Headerdateien\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="upGLFWWindow.h">
-      <Filter>Headerdateien\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanParticleRenderer.h">
-      <Filter>Headerdateien\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="glfwFPS.h">
-      <Filter>Headerdateien\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="StaticPointRenderObject.h">
-      <Filter>Headerdateien\RenderObject\default</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanStaticPointRenderObject.h">
       <Filter>Headerdateien\RenderObject\default</Filter>
     </ClInclude>
     <ClInclude Include="TwoPointMovingRenderObject.h">
       <Filter>Headerdateien\RenderObject\indexLogo</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanTwoPointMovingRenderObject.h">
-      <Filter>Headerdateien\RenderObject\indexLogo</Filter>
-    </ClInclude>
     <ClInclude Include="DynamicPointRenderObject.h">
       <Filter>Headerdateien\RenderObject\dynamic</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanDynamicPointRenderObject.h">
+    <ClInclude Include="CudaPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="CudaVertexBuffer.h">
+      <Filter>Headerdateien\RenderObject\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\File.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\VulkanTwoPointMovingRenderObject.h">
+      <Filter>Headerdateien\RenderObject\indexLogo</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\VulkanDynamicPointRenderObject.h">
       <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\VulkanStaticPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\default</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\VulkanCudaPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\VulkanParticleRenderer.h">
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\glfwFPS.h">
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\upGLFWWindow.h">
+      <Filter>Headerdateien\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include_advanced\WindowsSecurityAttributes.h">
+      <Filter>Headerdateien\RenderObject\Cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File: VulkanRenderObject.h
+// File: StaticPointRenderObject.h
 // Date: 20.10.2019
 // Version: 1
 // Author: Christian Steinbrecher

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanErruption", "VulkanEr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanErruptionTest", "..\VulkanErruptionTest\VulkanErruptionTest.vcxproj", "{E3986D17-928A-484E-9AED-903C278C389F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanErruptionCudaTest", "..\VulkanErruptionCudaTest\VulkanErruptionCudaTest.vcxproj", "{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,12 @@ Global
 		{E3986D17-928A-484E-9AED-903C278C389F}.Release|x64.Build.0 = Release|x64
 		{E3986D17-928A-484E-9AED-903C278C389F}.Release|x86.ActiveCfg = Release|Win32
 		{E3986D17-928A-484E-9AED-903C278C389F}.Release|x86.Build.0 = Release|Win32
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Debug|x64.ActiveCfg = Debug|x64
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Debug|x64.Build.0 = Debug|x64
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Debug|x86.ActiveCfg = Debug|x64
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Release|x64.ActiveCfg = Release|x64
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Release|x64.Build.0 = Release|x64
+		{9FBF62E5-CDD1-4071-8D77-A57F42BC162E}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
