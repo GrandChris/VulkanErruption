@@ -19,7 +19,7 @@ int main()
 	// draw
 	std::vector<CudaPointRenderObject::Vertex> vertices =
 	{
-		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+		{{0.0f, -0.0f}, {1.0f, 1.0f, 1.0f}},
 		{{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
 		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
 		{{-2.0f, 2.0f}, {0.0f, 1.0f, 1.0f}}
@@ -33,7 +33,7 @@ int main()
 	size_t vertexBufferSize = vertices.size();
 	CudaExternalVertexBuffer<CudaPointRenderObject::Vertex> dp_VertexBuffer;
 
-	auto lbd = [&]() {
+	auto lbd = [&](bool init) {
 		// manipulate dp_VertexBuffer
 		assert(dp_VertexBuffer.size() == vertices.size());
 
