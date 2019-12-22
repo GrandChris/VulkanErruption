@@ -19,10 +19,10 @@ int main()
 	// draw
 	std::vector<CudaPointRenderObject::Vertex> vertices =
 	{
-		{{0.0f, -0.0f}, {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-		{{-2.0f, 2.0f}, {0.0f, 1.0f, 1.0f}}
+		{{0.0f, 0.0f, -0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+		{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+		{{0.0f,  0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
 	};
 
 	auto app = ParticleRenderer::createVulkan();
@@ -38,7 +38,7 @@ int main()
 		assert(dp_VertexBuffer.size() == vertices.size());
 
 		static float count = 0;
-		vertices[0].pos.x = sin(count += 0.001f);
+		vertices[0].pos.z = sin(count += 0.001f);
 
 
 		cudaMemcpy(dp_VertexBuffer.get(), vertices.data(), dp_VertexBuffer.size() * sizeof(CudaPointRenderObject::Vertex), cudaMemcpyHostToDevice);
@@ -46,6 +46,7 @@ int main()
 
 
 	obj->setVertices(dp_VertexBuffer, vertexBufferSize, lbd);
+	obj->setPosition({ 4.0f, 0.0f, 0.0f });
 	app->add(std::move(obj));
 
 	app->run();

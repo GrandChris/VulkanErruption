@@ -39,10 +39,10 @@
     <IncludePath>G:\VisualStudio\VulkanErruption\VulkanErruption;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\glm;..\VulkanErruption\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\glm;..\glm;..\VulkanErruption\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\glm;..\VulkanErruption\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\glm;..\glm;..\VulkanErruption\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />

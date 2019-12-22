@@ -49,10 +49,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\VulkanErruption\include;..\glm;$(IncludePath)</IncludePath>
+    <IncludePath>..\VulkanErruption\include;..\..\glm;..\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\VulkanErruption\include;..\glm;$(IncludePath)</IncludePath>
+    <IncludePath>..\VulkanErruption\include;..\..\glm;..\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

@@ -693,7 +693,8 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vk::UniquePipeline& graphicsPipeline, 
 	std::vector<char> const& vertShaderCode, std::vector<char> const& fragShaderCode, 
 	vk::VertexInputBindingDescription const& bindingDescription, 
-	std::vector<vk::VertexInputAttributeDescription> const& attributeDescriptions)
+	std::vector<vk::VertexInputAttributeDescription> const& attributeDescriptions, 
+	bool const useTriangles)
 {
 	auto const vertShaderModule = createShaderModule(vertShaderCode);
 	auto const fragShaderModule = createShaderModule(fragShaderCode);
@@ -722,8 +723,14 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 
-	//inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-	inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
+	if (useTriangles == true)
+	{
+		inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	}
+	else
+	{
+		inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
+	}
 
 	inputAssembly.setPrimitiveRestartEnable(VK_FALSE);
 

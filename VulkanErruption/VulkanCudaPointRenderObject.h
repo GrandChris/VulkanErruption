@@ -15,7 +15,7 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/vert_spv.h"
+#include "shaders/vec3_vert_spv.h"
 #include "shaders/frag_spv.h"
 
 
@@ -29,7 +29,7 @@ public:
 
 
 private:
-	inline static std::vector<char> const vertShaderCode = vert_spv;
+	inline static std::vector<char> const vertShaderCode = vec3_vert_spv;
 	inline static std::vector<char> const fragShaderCode = frag_spv;
 
 	// Description of a Vertex

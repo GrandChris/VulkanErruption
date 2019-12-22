@@ -82,7 +82,7 @@ std::vector<vk::VertexInputAttributeDescription> VulkanCudaPointRenderObject::ge
 	attributeDescriptions.resize(2);
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
-	attributeDescriptions[0].setFormat(vk::Format::eR32G32Sfloat);
+	attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
 	attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
 	attributeDescriptions[1].setBinding(0);
 	attributeDescriptions[1].setLocation(1);
@@ -96,7 +96,7 @@ std::vector<vk::VertexInputAttributeDescription> VulkanCudaPointRenderObject::ge
 void VulkanCudaPointRenderObject::createGraphicsPipeline(VulkanParticleRenderer& engine)
 {
 	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-		getVertexBindingDescription(), getVertexAttributeDescriptions());
+		getVertexBindingDescription(), getVertexAttributeDescriptions(), mUseTriangles);
 }
 
 
@@ -213,7 +213,7 @@ void VulkanCudaPointRenderObject::drawFrame(VulkanParticleRenderer& engine)
 	mVerticesFunc(false);	// call a function to update vertices through a cuda kernel
 
 	UniformBufferObject ubo;
-	ubo.view = glm::lookAt(mPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.view = glm::lookAt(mPos, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo);
 }
 

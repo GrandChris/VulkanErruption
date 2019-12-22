@@ -29,7 +29,7 @@ public:
 
 	struct Vertex
 	{
-		glm::vec2 pos;
+		glm::vec3 pos;
 		glm::vec3 color;
 	};
 
@@ -46,6 +46,8 @@ public:
 	
 	void setPosition(glm::vec3 const& pos);
 
+	void setUseTriangles(bool const useTriangles);
+
 
 	static uPtr createVulkan();
 
@@ -54,6 +56,7 @@ protected:
 	std::function<void(bool)> mVerticesFunc;
 
 	size_t mExternalVertexBufferSize = 0;
+	bool mUseTriangles = false;
 
 	std::function<void(void*, size_t)> mInitExternalVertexBufferFunction;
 
@@ -82,6 +85,11 @@ inline void CudaPointRenderObject::setVertices(CudaExternalVertexBuffer<Vertex> 
 inline void CudaPointRenderObject::setPosition(glm::vec3 const& pos)
 {
 	mPos = pos;
+}
+
+inline void CudaPointRenderObject::setUseTriangles(bool const useTriangles)
+{
+	mUseTriangles = useTriangles;
 }
 
 
