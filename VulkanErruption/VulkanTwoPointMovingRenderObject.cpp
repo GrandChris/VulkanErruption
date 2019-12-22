@@ -112,6 +112,7 @@ void VulkanTwoPointMovingRenderObject::drawFrame(VulkanParticleRenderer& engine)
 
 	UniformBufferObject ubo;
 	ubo.time = time;
+	ubo.model = glm::translate(glm::mat4(1.0f), mPos);
 	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo);
 }
 
