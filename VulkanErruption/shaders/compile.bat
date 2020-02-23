@@ -10,6 +10,13 @@ FileToHeader.exe generated/index_logo_vert.spv
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe dynamic.vert -O -o generated/dynamic_vert.spv
 FileToHeader.exe generated/dynamic_vert.spv
 
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube.vert -O -o generated/cube_vert.spv
+FileToHeader.exe generated/cube_vert.spv
+
+
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube.geom -O -o generated/cube_geom.spv
+FileToHeader.exe generated/cube_geom.spv
+
 
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe shader.frag -O -o generated/shader_frag.spv
 FileToHeader.exe generated/shader_frag.spv

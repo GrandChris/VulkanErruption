@@ -18,6 +18,7 @@ DynamicPointRenderObject::uPtr DynamicPointRenderObject::createVulkan()
 
 void VulkanDynamicPointRenderObject::create(VulkanParticleRenderer& engine)
 {
+	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
@@ -75,10 +76,30 @@ std::vector<vk::VertexInputAttributeDescription> VulkanDynamicPointRenderObject:
 }
 
 
+void VulkanDynamicPointRenderObject::createDescriptorSetLayout(VulkanParticleRenderer& engine)
+{
+	if (mUseCubes == true)
+	{
+		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eGeometry);
+	}
+	else
+	{
+		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex);
+	}
+}
+
 void VulkanDynamicPointRenderObject::createGraphicsPipeline(VulkanParticleRenderer& engine)
 {
-	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-		getVertexBindingDescription(), getVertexAttributeDescriptions());
+	if (mUseCubes == true)
+	{
+		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertGeomShaderCode, geomShaderCode, fragShaderCode,
+			descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
+	}
+	else
+	{
+		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
+			descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
+	}
 }
 
 void VulkanDynamicPointRenderObject::createVertexBuffer(VulkanParticleRenderer& engine)
@@ -95,7 +116,7 @@ void VulkanDynamicPointRenderObject::createUniformBuffer(VulkanParticleRenderer&
 
 void VulkanDynamicPointRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanDynamicPointRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)
@@ -114,6 +135,7 @@ void VulkanDynamicPointRenderObject::drawFrame(VulkanParticleRenderer& engine)
 	mVertices = mVerticesFunc();
 
 	UniformBufferObject ubo;
+	ubo.model = glm::translate(glm::mat4(1.0f), mPos);
 	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo, vertexBufferMemory, mVertices);
 }
 

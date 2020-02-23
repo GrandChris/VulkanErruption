@@ -42,6 +42,7 @@ CudaPointRenderObject::uPtr CudaPointRenderObject::createVulkan()
 
 void VulkanCudaPointRenderObject::create(VulkanParticleRenderer& engine)
 {
+	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
@@ -62,6 +63,7 @@ void VulkanCudaPointRenderObject::cleanup(VulkanParticleRenderer& engine)
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
 	pipelineLayout.reset();
+	descriptorSetLayout.reset();
 }
 
 
@@ -93,10 +95,15 @@ std::vector<vk::VertexInputAttributeDescription> VulkanCudaPointRenderObject::ge
 }
 
 
+void VulkanCudaPointRenderObject::createDescriptorSetLayout(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorSetLayout(descriptorSetLayout);
+}
+
 void VulkanCudaPointRenderObject::createGraphicsPipeline(VulkanParticleRenderer& engine)
 {
 	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-		getVertexBindingDescription(), getVertexAttributeDescriptions(), mUseTriangles);
+		descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions(), mUseTriangles);
 }
 
 
@@ -197,7 +204,7 @@ void VulkanCudaPointRenderObject::createUniformBuffer(VulkanParticleRenderer& en
 
 void VulkanCudaPointRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanCudaPointRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)

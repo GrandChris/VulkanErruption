@@ -98,14 +98,28 @@ public:
 
 		void createRenderPass();
 
-		void createDescriptorSetLayout();
+		void createDescriptorSetLayout(vk::UniqueDescriptorSetLayout& descriptorSetLayout, 
+			vk::ShaderStageFlagBits const shaderStageFlag = vk::ShaderStageFlagBits::eVertex);
 
 		void createGraphicsPipeline(vk::UniquePipelineLayout & pipelineLayout, 
 			vk::UniquePipeline & graphicsPipeline,
 			std::vector<char> const & vertShaderCode, std::vector<char> const & fragShaderCode,
+			vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 			vk::VertexInputBindingDescription const & bindingDescription,
 			std::vector<vk::VertexInputAttributeDescription>const & attributeDescriptions,
 			bool const useTriangles = false);
+
+		void createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayout,
+			vk::UniquePipeline& graphicsPipeline,
+			std::vector<char> const& vertShaderCode, std::vector<char> const& geomShaderCode, std::vector<char> const& fragShaderCode,
+			vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
+			vk::VertexInputBindingDescription const& bindingDescription,
+			std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
+			bool const useTriangles = false);
+
+
+
+
 		//void createGraphicsPipeline();
 
 			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
@@ -156,6 +170,7 @@ public:
 			void createDescriptorPool();
 
 			void createDescriptorSets(std::vector<vk::DescriptorSet> & descriptorSets,
+				vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 				std::vector<vk::UniqueBuffer> const & uniformBuffers,
 				size_t const UniformBufferObjectSize);
 			//void createDescriptorSets();
@@ -348,7 +363,7 @@ public:
 	//	alignas(16) glm::mat4 proj;
 	//};
 
-	vk::UniqueDescriptorSetLayout descriptorSetLayout;
+	//vk::UniqueDescriptorSetLayout descriptorSetLayout;
 	
 	//std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;
 
@@ -537,20 +552,17 @@ inline void VulkanParticleRenderer::updateUniformBuffer(uint32_t currentImage,
 	assert(!uniformBuffersMemory.empty());
 	assert(device);
 
-	static auto const startTime = std::chrono::high_resolution_clock::now();
+	//static auto const startTime = std::chrono::high_resolution_clock::now();
 
-	auto const currentTime = std::chrono::high_resolution_clock::now();
+	//auto const currentTime = std::chrono::high_resolution_clock::now();
 
-	float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count() / 10.0f;
+	//float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count() / 10.0f;
 
 	T ubo = uniformBufferObject;
 	//ubo.model = glm::mat4(1.0f); // glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	
-	//if (ubo.view == glm::mat4())
-	//{
-		ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	/*}	*/
-	
+
+	ubo.view = glm::lookAt(glm::vec3(4.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1; // invert Y for Vulkan
 
@@ -574,5 +586,5 @@ inline void VulkanParticleRenderer::updateVertexBuffer(vk::UniqueDeviceMemory co
 	//copyBuffer(stagingBuffer.get(), vertexBuffer.get(), bufferSize);
 
 	graphicsQueue.waitIdle();
-
+	 
 }

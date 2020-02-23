@@ -37,6 +37,8 @@ private:
 
 	// Create functions
 
+	void createDescriptorSetLayout(VulkanParticleRenderer& engine);
+
 	void createGraphicsPipeline(VulkanParticleRenderer& engine);
 
 	void createVertexBuffer(VulkanParticleRenderer& engine);
@@ -51,6 +53,8 @@ private:
 	// Draw functions
 	void drawFrame(VulkanParticleRenderer& engine);
 
+	// Uniform Buffer description
+	vk::UniqueDescriptorSetLayout descriptorSetLayout;
 
 	// Graphics pipeline
 	vk::UniquePipelineLayout pipelineLayout;

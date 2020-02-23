@@ -18,6 +18,7 @@ StaticPointRenderObject::uPtr StaticPointRenderObject::createVulkan()
 
 void VulkanStaticPointRenderObject::create(VulkanParticleRenderer& engine)
 {
+	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
@@ -38,6 +39,7 @@ void VulkanStaticPointRenderObject::cleanup(VulkanParticleRenderer& engine)
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
 	pipelineLayout.reset();
+	descriptorSetLayout.reset();
 }
 
 
@@ -69,10 +71,15 @@ std::vector<vk::VertexInputAttributeDescription> VulkanStaticPointRenderObject::
 }
 
 
+void VulkanStaticPointRenderObject::createDescriptorSetLayout(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorSetLayout(descriptorSetLayout);
+}
+
 void VulkanStaticPointRenderObject::createGraphicsPipeline(VulkanParticleRenderer & engine)
 {
 	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-		getVertexBindingDescription(), getVertexAttributeDescriptions());
+		descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
 }
 
 void VulkanStaticPointRenderObject::createVertexBuffer(VulkanParticleRenderer& engine)
@@ -87,7 +94,7 @@ void VulkanStaticPointRenderObject::createUniformBuffer(VulkanParticleRenderer& 
 
 void VulkanStaticPointRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanStaticPointRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)

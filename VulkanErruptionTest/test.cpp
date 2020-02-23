@@ -46,7 +46,7 @@ TEST(TestRenderObject, DISABLED_simple) {
 }
 
 
-TEST(TestRenderObject, twoPoint) {
+TEST(TestRenderObject, DISABLED_twoPoint) {
 
 	bool succes = true;
 
@@ -75,29 +75,44 @@ TEST(TestRenderObject, twoPoint) {
 }
 
 
-TEST(TestRenderObject, DISABLED_dynamic) {
+TEST(TestRenderObject, dynamic) {
 
 	bool succes = true;
 
 
+	//std::vector<DynamicPointRenderObject::Vertex> vertices =
+	//{
+	//	{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	//	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+	//	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	//	{{-2.0f, 2.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
+	//};
+
+
 	std::vector<DynamicPointRenderObject::Vertex> vertices =
 	{
-		{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 1.0f}},
-		{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-		{{-2.0f, 2.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
+		{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+		{{0.0f, 0.0f, 0.5f}, {0.5f, 0.5f, 0.5f}},
+		{{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+		{{0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}
 	};
 
 	auto app = ParticleRenderer::createVulkan();
 
 	auto obj = DynamicPointRenderObject::createVulkan();
-	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex> {
-		static float count = 0;
-		vertices[0].pos.x =  sin(count += 0.001f);
 
+	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex> 
+		{
+			static float count = 0;
+			vertices[0].pos.x = sin(count += 0.001f);
+			//vertices[1].pos.y = 0.5f* sin(count += 0.001f);
 
-		return vertices;
+			return vertices;
 		}, vertices.size());
+
+	obj->setPosition({ 0.0f, 0.0f, 0.0f });
+	obj->setUseCubes(true);
 
 	app->add(std::move(obj));
 

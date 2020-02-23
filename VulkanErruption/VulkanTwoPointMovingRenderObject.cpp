@@ -18,6 +18,7 @@ TwoPointMovingRenderObject::uPtr TwoPointMovingRenderObject::createVulkan()
 
 void VulkanTwoPointMovingRenderObject::create(VulkanParticleRenderer& engine)
 {
+	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
@@ -38,6 +39,7 @@ void VulkanTwoPointMovingRenderObject::cleanup(VulkanParticleRenderer& engine)
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
 	pipelineLayout.reset();
+	descriptorSetLayout.reset();
 }
 
 
@@ -75,10 +77,15 @@ std::vector<vk::VertexInputAttributeDescription> VulkanTwoPointMovingRenderObjec
 }
 
 
+void VulkanTwoPointMovingRenderObject::createDescriptorSetLayout(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorSetLayout(descriptorSetLayout);
+}
+
 void VulkanTwoPointMovingRenderObject::createGraphicsPipeline(VulkanParticleRenderer& engine)
 {
 	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-		getVertexBindingDescription(), getVertexAttributeDescriptions());
+		descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
 }
 
 void VulkanTwoPointMovingRenderObject::createVertexBuffer(VulkanParticleRenderer& engine)
@@ -93,7 +100,7 @@ void VulkanTwoPointMovingRenderObject::createUniformBuffer(VulkanParticleRendere
 
 void VulkanTwoPointMovingRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanTwoPointMovingRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)

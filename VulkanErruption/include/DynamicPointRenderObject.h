@@ -40,6 +40,8 @@ public:
 	void setVertices(TFunc & funcObj, size_t const arraySize);
 	void setPosition(glm::vec3 const& pos);
 
+	void setUseCubes(bool const val = false);
+
 
 	static uPtr createVulkan();
 
@@ -49,6 +51,8 @@ protected:
 	std::vector<Vertex> mVertices;
 	size_t mVerticesSize = 0;
 	glm::vec3 mPos;
+
+	bool mUseCubes = false;
 };
 
 // #######+++++++ Implementation +++++++#######
@@ -67,4 +71,9 @@ inline void DynamicPointRenderObject::setVertices(TFunc & funcObj, size_t const 
 inline void DynamicPointRenderObject::setPosition(glm::vec3 const& pos)
 {
 	mPos = pos;
+}
+
+inline void DynamicPointRenderObject::setUseCubes(bool const val)
+{ 
+	mUseCubes = val;
 }

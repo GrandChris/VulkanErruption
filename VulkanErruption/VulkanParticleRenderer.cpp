@@ -178,7 +178,7 @@ void VulkanParticleRenderer::initVulkan()
 	createSwapChain();
 	createImageViews();
 	createRenderPass();
-	createDescriptorSetLayout();
+	//createDescriptorSetLayout();
 	//createGraphicsPipeline();
 	createCommandPool();
 	createDepthResources();
@@ -421,6 +421,7 @@ void VulkanParticleRenderer::createLogicalDevice()
 	}
 	
 	vk::PhysicalDeviceFeatures deviceFeatures;
+	deviceFeatures.setGeometryShader(true);
 
 	vk::DeviceCreateInfo createInfo;
 	createInfo.setQueueCreateInfoCount(static_cast<uint32_t>(queueCreateInfos.size()));
@@ -673,13 +674,14 @@ void VulkanParticleRenderer::createRenderPass()
 	renderPass = device->createRenderPassUnique(renderPassInfo);
 }
 
-void VulkanParticleRenderer::createDescriptorSetLayout()
+void VulkanParticleRenderer::createDescriptorSetLayout(vk::UniqueDescriptorSetLayout & descriptorSetLayout, 
+				vk::ShaderStageFlagBits const shaderStageFlag)
 {
 	vk::DescriptorSetLayoutBinding uboLayoutBinding;
 	uboLayoutBinding.setBinding(0);
 	uboLayoutBinding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
 	uboLayoutBinding.setDescriptorCount(1);
-	uboLayoutBinding.setStageFlags(vk::ShaderStageFlagBits::eVertex);
+	uboLayoutBinding.setStageFlags(shaderStageFlag);
 	uboLayoutBinding.setPImmutableSamplers(nullptr); // Optional
 	
 	vk::DescriptorSetLayoutCreateInfo layoutInfo;
@@ -689,30 +691,68 @@ void VulkanParticleRenderer::createDescriptorSetLayout()
 	descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);	
 }
 
-void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayout, 
-	vk::UniquePipeline& graphicsPipeline, 
-	std::vector<char> const& vertShaderCode, std::vector<char> const& fragShaderCode, 
-	vk::VertexInputBindingDescription const& bindingDescription, 
-	std::vector<vk::VertexInputAttributeDescription> const& attributeDescriptions, 
+void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayout,
+	vk::UniquePipeline& graphicsPipeline,
+	std::vector<char> const& vertShaderCode, std::vector<char> const& fragShaderCode,
+	vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
+	vk::VertexInputBindingDescription const& bindingDescription,
+	std::vector<vk::VertexInputAttributeDescription> const& attributeDescriptions,
 	bool const useTriangles)
 {
-	auto const vertShaderModule = createShaderModule(vertShaderCode);
-	auto const fragShaderModule = createShaderModule(fragShaderCode);
+	createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, std::vector<char>(), fragShaderCode,
+		descriptorSetLayout, bindingDescription, attributeDescriptions);
+}
+
+
+void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayout,
+	vk::UniquePipeline& graphicsPipeline,
+	std::vector<char> const& vertShaderCode, std::vector<char> const& geomShaderCode, std::vector<char> const& fragShaderCode,
+	vk::UniqueDescriptorSetLayout const & descriptorSetLayout,
+	vk::VertexInputBindingDescription const& bindingDescription,
+	std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
+	bool const useTriangles)
+{
+	vk::UniqueShaderModule const vertShaderModule = createShaderModule(vertShaderCode);
+	vk::UniqueShaderModule geomShaderModule;
+	if (!geomShaderCode.empty())
+	{
+		geomShaderModule = createShaderModule(geomShaderCode);
+	}
+	vk::UniqueShaderModule const fragShaderModule = createShaderModule(fragShaderCode);
 
 	vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
 	vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
 	vertShaderStageInfo.setModule(vertShaderModule.get());
 	vertShaderStageInfo.setPName("main");
 
+	vk::PipelineShaderStageCreateInfo geomShaderStageInfo;
+	if (!geomShaderCode.empty())
+	{
+		geomShaderStageInfo.setStage(vk::ShaderStageFlagBits::eGeometry);
+		geomShaderStageInfo.setModule(geomShaderModule.get());
+		geomShaderStageInfo.setPName("main");
+	}
+
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
 	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
 	fragShaderStageInfo.setModule(fragShaderModule.get());
 	fragShaderStageInfo.setPName("main");
 
-	vk::PipelineShaderStageCreateInfo const shaderStages[] = {
-		vertShaderStageInfo,
-		fragShaderStageInfo
-	};
+	size_t shaderStagesSize = 0;
+	vk::PipelineShaderStageCreateInfo shaderStages[3];
+	if (!geomShaderCode.empty())
+	{
+		shaderStages[0] = vertShaderStageInfo;
+		shaderStages[1] = fragShaderStageInfo;
+		shaderStages[2] = geomShaderStageInfo;
+		shaderStagesSize = 3;
+	}
+	else
+	{
+		shaderStages[0] = vertShaderStageInfo;
+		shaderStages[1] = fragShaderStageInfo;
+		shaderStagesSize = 2;
+	}
 
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
 
@@ -723,12 +763,13 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 
-	if (useTriangles == true)
+	if (useTriangles == true && geomShaderCode.empty())
 	{
 		inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 	}
 	else
 	{
+		//inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 		inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
 	}
 
@@ -758,7 +799,10 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 	rasterizer.setLineWidth(1.0f);
 	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	//rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
+	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
+	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 	rasterizer.setDepthBiasEnable(VK_FALSE);
 	rasterizer.setDepthBiasConstantFactor(0.0f); // Optional
 	rasterizer.setDepthBiasClamp(0.0f); // Optional
@@ -838,7 +882,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	pipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutInfo);
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.setStageCount(2);
+	pipelineInfo.setStageCount(static_cast<uint32_t>(shaderStagesSize));
 	pipelineInfo.setPStages(shaderStages);
 	pipelineInfo.setPVertexInputState(&vertexInputInfo);
 	pipelineInfo.setPInputAssemblyState(&inputAssembly);
@@ -1097,6 +1141,7 @@ void VulkanParticleRenderer::createDescriptorPool()
 }
 
 void VulkanParticleRenderer::createDescriptorSets(std::vector<vk::DescriptorSet>& descriptorSets, 
+	vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 	std::vector<vk::UniqueBuffer> const& uniformBuffers, size_t const UniformBufferObjectSize)
 {
 	assert(!uniformBuffers.empty());
