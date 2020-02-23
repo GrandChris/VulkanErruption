@@ -7,7 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 
 #include "ParticleRenderer.h"
@@ -20,7 +20,7 @@
 
 using namespace std;
 
-TEST(TestRenderObject, simple) {
+TEST(TestRenderObject, DISABLED_simple) {
 
 	bool succes = true;
 
@@ -53,10 +53,11 @@ TEST(TestRenderObject, twoPoint) {
 
 	std::vector<TwoPointMovingRenderObject::Vertex> vertices =
 	{
-		{{0.0f, -0.5f, 0.0f}, {0.0f, -0.2f, 0.0f} , {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f, 0.0f}, {0.2f, 0.2f, 0.0f}, {0.0f, 1.0f, 1.0f}},
-		{{-0.5f, 0.5f, 0.0f}, {-0.2f, 0.2f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-		{{-2.0f, 2.0f, 0.0f}, {-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} ,{1.0f, 1.0f, 1.0f}},
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+		{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 0.5f, 0.5f}},
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.5f}, {0.0f, 0.0f, 0.5f} ,{1.0f, 1.0f, 1.0f}}
 	};
 
 	auto app = ParticleRenderer::createVulkan();
@@ -64,6 +65,7 @@ TEST(TestRenderObject, twoPoint) {
 	auto obj = TwoPointMovingRenderObject::createVulkan();
 	obj->setVertices(vertices);
 	obj->setTime(4.0);
+	obj->setPosition({ -4.0f, 0.0f, 0.0f });
 	app->add(std::move(obj));
 
 	app->run();
@@ -73,7 +75,7 @@ TEST(TestRenderObject, twoPoint) {
 }
 
 
-TEST(TestRenderObject, dynamic) {
+TEST(TestRenderObject, DISABLED_dynamic) {
 
 	bool succes = true;
 
