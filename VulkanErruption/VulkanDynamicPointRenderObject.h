@@ -14,8 +14,8 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/dynamic_vert_spv.h"
-#include "shaders/frag_spv.h"
+#include "shaders/generated/dynamic_vert_spv.h"
+#include "shaders/generated/shader_frag_spv.h"
 
 
 class VulkanDynamicPointRenderObject : public DynamicPointRenderObject
@@ -29,7 +29,7 @@ public:
 
 private:
 	inline static std::vector<char> const vertShaderCode = dynamic_vert_spv;
-	inline static std::vector<char> const fragShaderCode = frag_spv;
+	inline static std::vector<char> const fragShaderCode = shader_frag_spv;
 
 	// Description of a Vertex
 	static vk::VertexInputBindingDescription getVertexBindingDescription();

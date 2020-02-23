@@ -14,8 +14,8 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/vert_spv.h"
-#include "shaders/frag_spv.h"
+#include "shaders/generated/shader_vert_spv.h"
+#include "shaders/generated/shader_frag_spv.h"
 
 
 class VulkanStaticPointRenderObject : public StaticPointRenderObject
@@ -28,8 +28,8 @@ public:
 
 
 private:
-	inline static std::vector<char> const vertShaderCode = vert_spv;
-	inline static std::vector<char> const fragShaderCode = frag_spv;
+	inline static std::vector<char> const vertShaderCode = shader_vert_spv;
+	inline static std::vector<char> const fragShaderCode = shader_frag_spv;
 
 	// Description of a Vertex
 	static vk::VertexInputBindingDescription getVertexBindingDescription();

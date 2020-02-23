@@ -9,8 +9,8 @@
 
 #include "VulkanParticleRenderer.h"
 
-#include "shaders/vert_spv.h"
-#include "shaders/frag_spv.h"
+//#include "shaders/shader_vert_spv.h"
+//#include "shaders/shader_frag_spv.h"
 
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
@@ -739,7 +739,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	viewport.setY(0.0f);
 	viewport.setWidth(static_cast<float>(swapChainExtent.width));
 	viewport.setHeight(static_cast<float>(swapChainExtent.height));
-	viewport.setMaxDepth(0.0f);
+	viewport.setMinDepth(0.0f);
 	viewport.setMaxDepth(1.0f);
 
 	vk::Rect2D scissor;
