@@ -107,6 +107,7 @@ TEST(TestRenderObject, dynamic) {
 			static float count = 0;
 			vertices[0].pos.x = sin(count += 0.001f);
 			//vertices[1].pos.y = 0.5f* sin(count += 0.001f);
+			app->setView({4.0f * sin(count*0.1f), 4.0f* cos(count * 0.1f), 1.0f * sin(count * 0.13f) });
 
 			return vertices;
 		}, vertices.size());
@@ -115,6 +116,7 @@ TEST(TestRenderObject, dynamic) {
 	obj->setUseCubes(true);
 
 	app->add(std::move(obj));
+	app->setView({ 4.0, 2.0f, 1.0f });
 
 	app->run();
 

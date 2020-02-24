@@ -100,7 +100,6 @@ static Key GLFWKeyToKey(int const glfwKey) {
 // <<---
 
 
-
 ParticleRenderer::uPtr ParticleRenderer::createVulkan()
 {
 	return std::make_unique<VulkanParticleRenderer>();
@@ -556,6 +555,10 @@ vk::PresentModeKHR VulkanParticleRenderer::chooseSwapPresentMode(std::vector<vk:
 
 	return vk::PresentModeKHR::eFifo;
 }
+
+// there is a fucking min and max macro which prevents using the functions in chooseSwapExtent
+#undef max
+#undef min
 
 vk::Extent2D VulkanParticleRenderer::chooseSwapExtent(vk::SurfaceCapabilitiesKHR const & capabilities)
 {
@@ -1225,7 +1228,11 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 		//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
 		//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
 		//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
+
+#pragma warning( push )
+#pragma warning( disable : 4297 )
 		commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
+#pragma warning( pop ) 
 
 		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
 

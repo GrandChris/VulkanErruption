@@ -13,6 +13,8 @@
 #include "Event.h"
 #include "Key.h"
 
+#include <glm/glm.hpp>
+
 
 #include <memory>
 #include <thread>
@@ -41,6 +43,8 @@ public:
 	virtual void setVSync(bool const vsyncEnabled) = 0;
 	virtual void setWindowSize(size_t const widht, size_t const height, bool const fullscreenEnabled = false) = 0;
 
+	void setView(glm::vec3 const& eye, glm::vec3 const& view = glm::vec3());
+
 	// Gets a Vulkan implementation of this interface
 	static uPtr createVulkan();
 
@@ -55,6 +59,9 @@ protected:
 
 	//size_t mWidth = 2560;
 	//size_t mHeight = 1440;
+
+	glm::vec3 mEye = glm::vec3(4.0f, 0.0f, 0.0f);	// Player position
+	glm::vec3 mView = glm::vec3(0.0f, 0.0f, 0.0f);	// Position to look at
 
 
 private:
@@ -76,3 +83,8 @@ inline void ParticleRenderer::add(RenderObject::uPtr obj)
 
 
 
+inline void ParticleRenderer::setView(glm::vec3 const& eye, glm::vec3 const& view)
+{
+	mEye = eye;
+	mView = view;
+}
