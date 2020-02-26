@@ -17,8 +17,12 @@ FileToHeader.exe generated/cube_vert.spv
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube.geom -O -o generated/cube_geom.spv
 FileToHeader.exe generated/cube_geom.spv
 
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube_specular.geom -O -o generated/cube_specular_geom.spv
+FileToHeader.exe generated/cube_specular_geom.spv
+
 
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe shader.frag -O -o generated/shader_frag.spv
 FileToHeader.exe generated/shader_frag.spv
 
-
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe specular.frag -O -o generated/specular_frag.spv
+FileToHeader.exe generated/specular_frag.spv

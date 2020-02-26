@@ -19,6 +19,10 @@
 #include "shaders/generated/cube_geom_spv.h"
 #include "shaders/generated/shader_frag_spv.h"
 
+#include "shaders/generated/cube_specular_geom_spv.h"
+#include "shaders/generated/specular_frag_spv.h"
+
+
 
 
 class VulkanDynamicPointRenderObject : public DynamicPointRenderObject
@@ -33,8 +37,12 @@ public:
 private:
 	inline static std::vector<char> const vertShaderCode = dynamic_vert_spv;
 	inline static std::vector<char> const vertGeomShaderCode = cube_vert_spv;
-	inline static std::vector<char> const geomShaderCode = cube_geom_spv;
-	inline static std::vector<char> const fragShaderCode = shader_frag_spv;
+
+	//inline static std::vector<char> const geomShaderCode = cube_geom_spv;
+	//inline static std::vector<char> const fragShaderCode = shader_frag_spv;
+
+	inline static std::vector<char> const geomShaderCode = cube_specular_geom_spv;
+	inline static std::vector<char> const fragShaderCode = specular_frag_spv;
 
 	// Description of a Vertex
 	static vk::VertexInputBindingDescription getVertexBindingDescription();

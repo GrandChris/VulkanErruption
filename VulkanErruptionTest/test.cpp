@@ -75,6 +75,7 @@ TEST(TestRenderObject, DISABLED_twoPoint) {
 }
 
 
+
 TEST(TestRenderObject, dynamic) {
 
 	bool succes = true;
@@ -95,19 +96,36 @@ TEST(TestRenderObject, dynamic) {
 		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
 		{{0.0f, 0.0f, 0.5f}, {0.5f, 0.5f, 0.5f}},
 		{{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-		{{0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+		{{0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
 	};
+
+	//std::vector<DynamicPointRenderObject::Vertex> vertices =
+	//{
+	//	{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	//	{{0.0f, 0.2f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+	//	{{0.0f, -0.2f, 0.0f}, {0.5f, 0.5f, 0.5f}},
+	//	{{0.2f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+	//	{{-0.2f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+
+	//	{{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
+	//};
 
 	auto app = ParticleRenderer::createVulkan();
 
 	auto obj = DynamicPointRenderObject::createVulkan();
 
-	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex> 
+	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex>
 		{
 			static float count = 0;
+			count += 0.001f;
 			vertices[0].pos.x = sin(count += 0.001f);
 			//vertices[1].pos.y = 0.5f* sin(count += 0.001f);
-			app->setView({4.0f * sin(count*0.1f), 4.0f* cos(count * 0.1f), 1.0f * sin(count * 0.13f) });
+			app->setView({ -4.0f * sin(count * 0.1f), -4.0f * cos(count * 0.1f), 2.0f });// *sin(count * 0.13f) });
+
+			//app->setView({ -1.0f * sin(count * 0.10f), -1.0f * cos(count * 0.10f), 0.5f });
+			//app->setView({ -1.0f, -1.0f, 1.0f + 1.0f * sin(count * 0.13f) });
+			//app->setView({ -1.0f + sin(count * 0.1f), -0.5f + cos(count * 0.1f), 0.7f + 0.5f * sin(count * 0.13f) });
 
 			return vertices;
 		}, vertices.size());
