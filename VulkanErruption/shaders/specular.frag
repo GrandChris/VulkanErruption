@@ -18,20 +18,10 @@ const float specularStrength = 0.5;
 
 void main() 
 {   
-    // vec3 lightPos = vec3(1.0f, 1.0f, 1.0f);
-    // vec3 viewPos = vec3(-1.0f, -1.0f, 1.0f);
-    // vec3 normal = vec3(0.0f, 0.0f, 1.0f);
-
     vec3 viewDir = normalize(viewPosition - fragPosition);
-    // vec3 lightDir = normalize(lightPos);
-
     vec3 reflectDir = reflect(lightDirection, fragNormal);  
     float spec = pow(max(dot(-viewDir, reflectDir), 0.0), 32);
 
-
-    // vec3 viewDir = normalize(viewPosition - fragPosition);
-    // vec3 reflectDir = reflect(lightDirection, fragNormal);  
-    // float spec = pow(max(dot(-viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * fragBaseColor;
 
     outColor = vec4(fragColor + specular, 1.0);
