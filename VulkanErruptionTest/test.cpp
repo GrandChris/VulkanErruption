@@ -76,18 +76,9 @@ TEST(TestRenderObject, DISABLED_twoPoint) {
 
 
 
-TEST(TestRenderObject, dynamic) {
+TEST(TestRenderObject, DISABLED_dynamic) {
 
 	bool succes = true;
-
-
-	//std::vector<DynamicPointRenderObject::Vertex> vertices =
-	//{
-	//	{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-	//	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 1.0f}},
-	//	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	//	{{-2.0f, 2.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}
-	//};
 
 
 	std::vector<DynamicPointRenderObject::Vertex> vertices =
@@ -100,17 +91,6 @@ TEST(TestRenderObject, dynamic) {
 		{{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
 	};
 
-	//std::vector<DynamicPointRenderObject::Vertex> vertices =
-	//{
-	//	{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-	//	{{0.0f, 0.2f, 0.0f}, {0.0f, 1.0f, 1.0f}},
-	//	{{0.0f, -0.2f, 0.0f}, {0.5f, 0.5f, 0.5f}},
-	//	{{0.2f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-	//	{{-0.2f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-
-	//	{{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
-	//};
-
 	auto app = ParticleRenderer::createVulkan();
 
 	auto obj = DynamicPointRenderObject::createVulkan();
@@ -120,12 +100,101 @@ TEST(TestRenderObject, dynamic) {
 			static float count = 0;
 			count += 0.001f;
 			vertices[0].pos.x = sin(count += 0.001f);
-			//vertices[1].pos.y = 0.5f* sin(count += 0.001f);
-			app->setView({ -4.0f * sin(count * 0.1f), -4.0f * cos(count * 0.1f), 2.0f });// *sin(count * 0.13f) });
+			app->setView({ -4.0f * sin(count * 0.1f), -4.0f * cos(count * 0.1f), 2.0f + 0.5 *sin(count * 0.13f) });
 
-			//app->setView({ -1.0f * sin(count * 0.10f), -1.0f * cos(count * 0.10f), 0.5f });
-			//app->setView({ -1.0f, -1.0f, 1.0f + 1.0f * sin(count * 0.13f) });
-			//app->setView({ -1.0f + sin(count * 0.1f), -0.5f + cos(count * 0.1f), 0.7f + 0.5f * sin(count * 0.13f) });
+
+			return vertices;
+		}, vertices.size());
+
+	obj->setPosition({ 0.0f, 0.0f, 0.0f });
+	obj->setUseCubes(true);
+
+	app->add(std::move(obj));
+	app->setView({ 4.0, 2.0f, 1.0f });
+
+	app->run();
+
+
+	EXPECT_TRUE(succes);
+}
+
+
+#include <random>
+
+void fillNormalDistributed(std::vector<DynamicPointRenderObject::Vertex> & vec, size_t const n, size_t const N)
+{
+	std::default_random_engine generator;
+	std::uniform_int_distribution<int> distribution(-static_cast<int>(N), static_cast<int>(N));
+
+	for(size_t i = 0; i < n; ++i)
+	{
+		float const x = static_cast<float>(distribution(generator));
+		float const y = static_cast<float>(distribution(generator));
+		float const z = static_cast<float>(distribution(generator));
+
+		float const r = 0.5f / N * x + 0.5f;
+		float const g = 0.5f / N * y + 0.5f;
+		float const b = 0.5f / N * z + 0.5f;
+
+		vec.push_back({ glm::vec3(x/10.0f, y/10.0f, z/10.0f), glm::vec3(r, g, b) });
+	}
+
+}
+
+void fill(std::vector<DynamicPointRenderObject::Vertex>& vec, int const N)
+{
+
+	for (int x = -N/2; x < N/2; ++x)
+	{
+
+		for (int y = -N / 2; y < N / 2; ++y)
+		{
+
+			for (int z = -N / 2; z < N / 2; ++z)
+			{
+				float const r = 0.5f / N * x + 0.5f;
+				float const g = 0.5f / N * y + 0.5f;
+				float const b = 0.5f / N * z + 0.5f;
+
+				vec.push_back({ glm::vec3(x / 10.0f, y / 10.0f, z / 10.0f), glm::vec3(r, g, b) });
+			}
+
+		}
+	}
+
+}
+
+
+
+
+
+TEST(TestRenderObject, dynamic_performance) {
+
+	bool succes = true;
+
+	//size_t const n = 2'000'000;
+	//size_t const N = static_cast<size_t>(sqrt(n)) / 8;
+
+	size_t const n = 2'000'000;
+	size_t const N = 130;
+	
+	std::vector<DynamicPointRenderObject::Vertex> vertices;
+	//fill(vertices, N);
+	fillNormalDistributed(vertices, n, N);
+
+
+	auto app = ParticleRenderer::createVulkan();
+
+	auto obj = DynamicPointRenderObject::createVulkan();
+
+
+	float const Nf = N/10.0f * 3.0f;
+	obj->setVertices([&]() -> std::vector<DynamicPointRenderObject::Vertex>
+		{
+			static float count = 0;
+			count += 0.1f;
+			app->setView({ -Nf * sin(count * 0.1f), -Nf * cos(count * 0.1f), Nf/2 + Nf/10 * sin(count * 0.13f) });
+
 
 			return vertices;
 		}, vertices.size());

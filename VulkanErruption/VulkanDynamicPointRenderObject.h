@@ -39,10 +39,10 @@ private:
 	inline static std::vector<char> const vertGeomShaderCode = cube_vert_spv;
 
 	//inline static std::vector<char> const geomShaderCode = cube_geom_spv;
-	//inline static std::vector<char> const fragShaderCode = shader_frag_spv;
+	inline static std::vector<char> const fragShaderCode = shader_frag_spv;
 
-	inline static std::vector<char> const geomShaderCode = cube_specular_geom_spv;
-	inline static std::vector<char> const fragShaderCode = specular_frag_spv;
+	inline static std::vector<char> const geomSpecularShaderCode = cube_specular_geom_spv;
+	inline static std::vector<char> const fragSpecularhaderCode = specular_frag_spv;
 
 	// Description of a Vertex
 	static vk::VertexInputBindingDescription getVertexBindingDescription();

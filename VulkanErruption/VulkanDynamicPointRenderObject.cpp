@@ -92,7 +92,7 @@ void VulkanDynamicPointRenderObject::createGraphicsPipeline(VulkanParticleRender
 {
 	if (mUseCubes == true)
 	{
-		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertGeomShaderCode, geomShaderCode, fragShaderCode,
+		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertGeomShaderCode, geomSpecularShaderCode, fragSpecularhaderCode,
 			descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
 	}
 	else
