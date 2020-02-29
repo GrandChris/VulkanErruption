@@ -14,18 +14,8 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/generated/dynamic_vert_spv.h"
-#include "shaders/generated/cube_vert_spv.h"
-#include "shaders/generated/cube_geom_spv.h"
-#include "shaders/generated/shader_frag_spv.h"
-
-#include "shaders/generated/cube_specular_geom_spv.h"
-#include "shaders/generated/specular_frag_spv.h"
-
-
-
-
-class VulkanDynamicPointRenderObject : public DynamicPointRenderObject
+template<typename TShader>
+class VulkanDynamicPointRenderObject : public DynamicPointRenderObject<TShader>
 {
 public:
 	// Inherited from RenderObject
@@ -33,20 +23,10 @@ public:
 	virtual void draw(VulkanParticleRenderer& engine) override;
 	virtual void cleanup(VulkanParticleRenderer& engine) override;
 
-
 private:
-	inline static std::vector<char> const vertShaderCode = dynamic_vert_spv;
-	inline static std::vector<char> const vertGeomShaderCode = cube_vert_spv;
-
-	//inline static std::vector<char> const geomShaderCode = cube_geom_spv;
-	inline static std::vector<char> const fragShaderCode = shader_frag_spv;
-
-	inline static std::vector<char> const geomSpecularShaderCode = cube_specular_geom_spv;
-	inline static std::vector<char> const fragSpecularhaderCode = specular_frag_spv;
 
 	// Description of a Vertex
 	static vk::VertexInputBindingDescription getVertexBindingDescription();
-	static std::vector<vk::VertexInputAttributeDescription> getVertexAttributeDescriptions();
 
 	// Create functions
 
@@ -86,8 +66,6 @@ private:
 
 	// Descriptor sets
 	std::vector<vk::DescriptorSet> descriptorSets;
-
-
 };
 
 

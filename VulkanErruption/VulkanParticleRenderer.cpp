@@ -151,6 +151,7 @@ void VulkanParticleRenderer::initWindow()
 	glfwInit();	
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	if (mFullscreenEnabled == false)
@@ -165,6 +166,9 @@ void VulkanParticleRenderer::initWindow()
 	glfwSetWindowUserPointer(window.get(), this);
 	glfwSetFramebufferSizeCallback(window.get(), framebufferResizeCallback);
 	glfwSetKeyCallback(window.get(), keyInputCallback);
+
+
+	//glfwMaximizeWindow(window.get());
 }
 
 void VulkanParticleRenderer::initVulkan()
@@ -678,18 +682,18 @@ void VulkanParticleRenderer::createRenderPass()
 }
 
 void VulkanParticleRenderer::createDescriptorSetLayout(vk::UniqueDescriptorSetLayout & descriptorSetLayout, 
-				vk::ShaderStageFlagBits const shaderStageFlag)
+	vk::ShaderStageFlags const shaderStageFlag)
 {
-	vk::DescriptorSetLayoutBinding uboLayoutBinding;
-	uboLayoutBinding.setBinding(0);
-	uboLayoutBinding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
-	uboLayoutBinding.setDescriptorCount(1);
-	uboLayoutBinding.setStageFlags(shaderStageFlag);
-	uboLayoutBinding.setPImmutableSamplers(nullptr); // Optional
+	vk::DescriptorSetLayoutBinding uboLayoutBinding[2];
+	uboLayoutBinding[0].setBinding(0);
+	uboLayoutBinding[0].setDescriptorType(vk::DescriptorType::eUniformBuffer);
+	uboLayoutBinding[0].setDescriptorCount(1);
+	uboLayoutBinding[0].setStageFlags(shaderStageFlag);
+	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
 	
 	vk::DescriptorSetLayoutCreateInfo layoutInfo;
 	layoutInfo.setBindingCount(1);
-	layoutInfo.setPBindings(&uboLayoutBinding);
+	layoutInfo.setPBindings(uboLayoutBinding);
 
 	descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);	
 }
@@ -1443,11 +1447,11 @@ void VulkanParticleRenderer::setWindowSize(size_t const widht, size_t const heig
 
 	if (fullscreenEnabled == false)
 	{
-		glfwSetWindowMonitor(window.get(), nullptr, 50, 50, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
+		glfwSetWindowMonitor(window.get(), nullptr, 0, 30, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
 	}
 	else
 	{
-		glfwSetWindowMonitor(window.get(), glfwGetPrimaryMonitor(), 50, 50, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
+		glfwSetWindowMonitor(window.get(), glfwGetPrimaryMonitor(), 0, 30, static_cast<int>(widht), static_cast<int>(height), GLFW_DONT_CARE);
 	}
 }
 

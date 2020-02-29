@@ -10,6 +10,8 @@
 
 #include "RenderObject.h"
 
+#include "VertexCubeShader.h"
+
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -17,30 +19,31 @@
 #include <functional>
 
 
+
+template<typename T>
+class TestInstantiation
+{
+public:
+	void doStuff();
+};
+
+
+template<typename TShader = VertexCubeShader>
 class DynamicPointRenderObject : public RenderObject
 {
 public:
-	using uPtr = std::unique_ptr<DynamicPointRenderObject>;
+	using uPtr = typename std::unique_ptr<DynamicPointRenderObject>;
 
-	struct Vertex
-	{
-		glm::vec3 pos;
-		glm::vec3 color;
-		float pointSize = 1.0f;
-	};
+	using Shader = TShader;
+	using Vertex = typename TShader::Vertex;
+	using UniformBufferObject = typename TShader::UniformBufferObject;
 
-	struct UniformBufferObject
-	{
-		alignas(16) glm::mat4 model;
-		alignas(16) glm::mat4 view;
-		alignas(16) glm::mat4 proj;
-	};
 
 	template<typename TFunc>
 	void setVertices(TFunc & funcObj, size_t const arraySize);
 	void setPosition(glm::vec3 const& pos);
+	void setUbo(UniformBufferObject const& ubo);
 
-	void setUseCubes(bool const val = false);
 
 
 	static uPtr createVulkan();
@@ -51,14 +54,15 @@ protected:
 	std::vector<Vertex> mVertices;
 	size_t mVerticesSize = 0;
 	glm::vec3 mPos;
+	UniformBufferObject mUbo;
 
-	bool mUseCubes = false;
 };
 
 // #######+++++++ Implementation +++++++#######
 
+template<typename TShader>
 template<typename TFunc>
-inline void DynamicPointRenderObject::setVertices(TFunc & funcObj, size_t const arraySize)
+inline void DynamicPointRenderObject<TShader>::setVertices(TFunc & funcObj, size_t const arraySize)
 {
 	mVerticesSize = arraySize;
 	mVerticesFunc = funcObj;
@@ -67,13 +71,15 @@ inline void DynamicPointRenderObject::setVertices(TFunc & funcObj, size_t const 
 	assert(mVerticesSize == mVertices.size());
 }
 
-
-inline void DynamicPointRenderObject::setPosition(glm::vec3 const& pos)
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setPosition(glm::vec3 const& pos)
 {
 	mPos = pos;
 }
 
-inline void DynamicPointRenderObject::setUseCubes(bool const val)
-{ 
-	mUseCubes = val;
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setUbo(UniformBufferObject const& ubo)
+{
+	mUbo = ubo;
 }
+

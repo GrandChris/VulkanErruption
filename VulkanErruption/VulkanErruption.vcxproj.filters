@@ -92,6 +92,18 @@
     <ClInclude Include="VulkanTwoPointMovingRenderObject.h">
       <Filter>Headerdateien\RenderObject\indexLogo</Filter>
     </ClInclude>
+    <ClInclude Include="VertexCubeShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanVertexCubeShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanArray3DShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Array3DShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VulkanCudaPointRenderObject.cpp">

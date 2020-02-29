@@ -8,15 +8,33 @@
 
 #include "VulkanDynamicPointRenderObject.h"
 
+#include "VulkanVertexCubeShader.h"
+#include "VulkanArray3DShader.h"
 
 
-DynamicPointRenderObject::uPtr DynamicPointRenderObject::createVulkan()
+// needs explicit instantiation for every used shader
+template DynamicPointRenderObject<VertexCubeShader>::uPtr DynamicPointRenderObject<VertexCubeShader>::createVulkan();
+
+template DynamicPointRenderObject<Array3DShader<eShader::Pong>>::uPtr    DynamicPointRenderObject<Array3DShader<eShader::Pong>>::createVulkan();
+template DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::uPtr DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::createVulkan();
+template DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::uPtr DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::createVulkan();
+template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr  DynamicPointRenderObject<Array3DShader<eShader::Points>>::createVulkan();
+
+
+
+
+
+template<typename TShader>
+typename DynamicPointRenderObject<TShader>::uPtr DynamicPointRenderObject<TShader>::createVulkan()
 {
-	return std::make_unique<VulkanDynamicPointRenderObject>();
+	return std::make_unique<VulkanDynamicPointRenderObject<TShader>>();
 }
 
 
-void VulkanDynamicPointRenderObject::create(VulkanParticleRenderer& engine)
+
+
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::create(VulkanParticleRenderer& engine)
 {
 	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
@@ -26,12 +44,14 @@ void VulkanDynamicPointRenderObject::create(VulkanParticleRenderer& engine)
 	createCommandBuffer(engine);
 }
 
-void VulkanDynamicPointRenderObject::draw(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::draw(VulkanParticleRenderer& engine)
 {
 	drawFrame(engine);
 }
 
-void VulkanDynamicPointRenderObject::cleanup(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::cleanup(VulkanParticleRenderer& engine)
 {
 	descriptorSets.clear();
 	commandBuffers.clear();
@@ -42,45 +62,24 @@ void VulkanDynamicPointRenderObject::cleanup(VulkanParticleRenderer& engine)
 }
 
 
-
-vk::VertexInputBindingDescription VulkanDynamicPointRenderObject::getVertexBindingDescription()
+template<typename TShader>
+vk::VertexInputBindingDescription VulkanDynamicPointRenderObject<TShader>::getVertexBindingDescription()
 {
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.setBinding(0);
-	bindingDescription.setStride(sizeof(Vertex));
+	bindingDescription.setStride(sizeof(TShader::Vertex));
 	bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
 	return bindingDescription;
 }
 
-std::vector<vk::VertexInputAttributeDescription> VulkanDynamicPointRenderObject::getVertexAttributeDescriptions()
+
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createDescriptorSetLayout(VulkanParticleRenderer& engine)
 {
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-	attributeDescriptions.resize(3);
-	attributeDescriptions[0].setBinding(0);
-	attributeDescriptions[0].setLocation(0);
-	attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
-
-	attributeDescriptions[1].setBinding(0);
-	attributeDescriptions[1].setLocation(1);
-	attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[1].setOffset(offsetof(Vertex, color));
-
-	attributeDescriptions[2].setBinding(0);
-	attributeDescriptions[2].setLocation(2);
-	attributeDescriptions[2].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[2].setOffset(offsetof(Vertex, pointSize));
-
-	return attributeDescriptions;
-}
-
-
-void VulkanDynamicPointRenderObject::createDescriptorSetLayout(VulkanParticleRenderer& engine)
-{
-	if (mUseCubes == true)
+	if (!TShader::getGeometryShaderCode().empty())
 	{
-		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eGeometry);
+		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry);
 	}
 	else
 	{
@@ -88,55 +87,53 @@ void VulkanDynamicPointRenderObject::createDescriptorSetLayout(VulkanParticleRen
 	}
 }
 
-void VulkanDynamicPointRenderObject::createGraphicsPipeline(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createGraphicsPipeline(VulkanParticleRenderer& engine)
 {
-	if (mUseCubes == true)
-	{
-		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertGeomShaderCode, geomSpecularShaderCode, fragSpecularhaderCode,
-			descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
-	}
-	else
-	{
-		engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, fragShaderCode,
-			descriptorSetLayout, getVertexBindingDescription(), getVertexAttributeDescriptions());
-	}
+	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, 
+		TShader::getVertexShaderCode(), TShader::getGeometryShaderCode(), TShader::getFragmentShaderCode(),
+				descriptorSetLayout, getVertexBindingDescription(), TShader::getVertexAttributeDescriptions());
 }
 
-void VulkanDynamicPointRenderObject::createVertexBuffer(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createVertexBuffer(VulkanParticleRenderer& engine)
 {
-	vk::DeviceSize const bufferSize = sizeof(Vertex) * mVerticesSize;
+	vk::DeviceSize const bufferSize = sizeof(TShader::Vertex) * DynamicPointRenderObject<TShader>::mVerticesSize;
 
 	engine.createVertexBuffers(vertexBufferMemory, vertexBuffers, bufferSize);
 }
 
-void VulkanDynamicPointRenderObject::createUniformBuffer(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createUniformBuffer(VulkanParticleRenderer& engine)
 {
-	engine.createUniformBuffers(uniformBuffersMemory, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createUniformBuffers(uniformBuffersMemory, uniformBuffers, sizeof(TShader::UniformBufferObject));
 }
 
-void VulkanDynamicPointRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(TShader::UniformBufferObject));
 }
 
-void VulkanDynamicPointRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticleRenderer& engine)
 {
 	engine.createCommandBuffers(commandBuffers, 
 		pipelineLayout, graphicsPipeline,
 		vertexBuffers, 
 		descriptorSets, 
-		mVertices.size());
+		DynamicPointRenderObject<TShader>::mVertices.size());
 }
 
 
-
-void VulkanDynamicPointRenderObject::drawFrame(VulkanParticleRenderer& engine)
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& engine)
 {
-	mVertices = mVerticesFunc();
+	DynamicPointRenderObject<TShader>::mVertices = DynamicPointRenderObject<TShader>::mVerticesFunc();
 
-	UniformBufferObject ubo;
-	ubo.model = glm::translate(glm::mat4(1.0f), mPos);
-	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo, vertexBufferMemory, mVertices);
+	auto ubo = DynamicPointRenderObject<TShader>::mUbo;
+	ubo.model = glm::translate(glm::mat4(1.0f), DynamicPointRenderObject<TShader>::mPos);
+	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo, vertexBufferMemory, DynamicPointRenderObject<TShader>::mVertices);
 }
 
 

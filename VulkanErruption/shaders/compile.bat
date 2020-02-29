@@ -13,12 +13,26 @@ FileToHeader.exe generated/dynamic_vert.spv
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube.vert -O -o generated/cube_vert.spv
 FileToHeader.exe generated/cube_vert.spv
 
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe array3D_cube.vert -O -o generated/array3D_cube_vert.spv
+FileToHeader.exe generated/array3D_cube_vert.spv
+
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe array3D.vert -O -o generated/array3D_vert.spv
+FileToHeader.exe generated/array3D_vert.spv
+
+ 
+
 
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube.geom -O -o generated/cube_geom.spv
 FileToHeader.exe generated/cube_geom.spv
 
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe cube_specular.geom -O -o generated/cube_specular_geom.spv
 FileToHeader.exe generated/cube_specular_geom.spv
+
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe array3D_cube.geom -O -o generated/array3D_cube_geom.spv
+FileToHeader.exe generated/array3D_cube_geom.spv
+
+C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe array3D_cube_specular.geom -O -o generated/array3D_cube_specular_geom.spv
+FileToHeader.exe generated/array3D_cube_specular_geom.spv
 
 
 C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe shader.frag -O -o generated/shader_frag.spv

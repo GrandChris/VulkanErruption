@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="File.h" />
     <ClInclude Include="glfwFPS.h" />
+    <ClInclude Include="include\Array3DShader.h" />
     <ClInclude Include="include\CudaPointRenderObject.h" />
     <ClInclude Include="include\DynamicPointRenderObject.h" />
     <ClInclude Include="include\Event.h" />
@@ -182,11 +183,14 @@
     <ClInclude Include="include\StaticPointRenderObject.h" />
     <ClInclude Include="include\TwoPointMovingRenderObject.h" />
     <ClInclude Include="upGLFWWindow.h" />
+    <ClInclude Include="VertexCubeShader.h" />
+    <ClInclude Include="VulkanArray3DShader.h" />
     <ClInclude Include="VulkanCudaPointRenderObject.h" />
     <ClInclude Include="VulkanDynamicPointRenderObject.h" />
     <ClInclude Include="VulkanParticleRenderer.h" />
     <ClInclude Include="VulkanStaticPointRenderObject.h" />
     <ClInclude Include="VulkanTwoPointMovingRenderObject.h" />
+    <ClInclude Include="VulkanVertexCubeShader.h" />
     <ClInclude Include="WindowsSecurityAttributes.h" />
   </ItemGroup>
   <ItemGroup>

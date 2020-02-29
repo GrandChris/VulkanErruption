@@ -99,7 +99,7 @@ public:
 		void createRenderPass();
 
 		void createDescriptorSetLayout(vk::UniqueDescriptorSetLayout& descriptorSetLayout, 
-			vk::ShaderStageFlagBits const shaderStageFlag = vk::ShaderStageFlagBits::eVertex);
+			vk::ShaderStageFlags const shaderStageFlag = vk::ShaderStageFlagBits::eVertex);
 
 		void createGraphicsPipeline(vk::UniquePipelineLayout & pipelineLayout, 
 			vk::UniquePipeline & graphicsPipeline,
