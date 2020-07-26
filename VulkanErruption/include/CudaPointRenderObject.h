@@ -62,25 +62,12 @@ protected:
 
 
 	glm::vec3 mPos;
+
 };
 
 
 // #######+++++++ Implementation +++++++#######
 
-template<typename TFunc>
-inline void CudaPointRenderObject::setVertices(CudaExternalVertexBuffer<Vertex> & dp_ExternalVertexBuffer,
-	size_t const VertexBufferSize, TFunc& funcObj)
-{
-	mExternalVertexBufferSize = VertexBufferSize;
-
-	using std::placeholders::_1;
-	using std::placeholders::_2;
-
-	mInitExternalVertexBufferFunction = 
-		std::bind(&CudaExternalVertexBuffer<Vertex>::init, &dp_ExternalVertexBuffer, _1, _2);
-
-	mVerticesFunc = funcObj;
-}
 
 inline void CudaPointRenderObject::setPosition(glm::vec3 const& pos)
 {

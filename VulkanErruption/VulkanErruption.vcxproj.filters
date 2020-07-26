@@ -19,9 +19,6 @@
     <Filter Include="Headerdateien\Renderer">
       <UniqueIdentifier>{8021af45-f0da-4bd2-88d2-7e6120c58100}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien\RenderObject\default">
-      <UniqueIdentifier>{c7568ad6-7862-4492-83e8-0fd7741148d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headerdateien\RenderObject\indexLogo">
       <UniqueIdentifier>{228b0b67-24ab-47b8-84a0-9a20de78c944}</UniqueIdentifier>
     </Filter>
@@ -30,6 +27,12 @@
     </Filter>
     <Filter Include="Headerdateien\RenderObject\Cuda">
       <UniqueIdentifier>{7b62a9c2-9931-422d-b5ec-f937301315ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\RenderObject\static">
+      <UniqueIdentifier>{c7568ad6-7862-4492-83e8-0fd7741148d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\RenderObject\dynamic\vulkan">
+      <UniqueIdentifier>{55614b4a-b577-4c2a-a163-9801ca89ea72}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -65,11 +68,8 @@
     <ClInclude Include="include\RenderObject.h">
       <Filter>Headerdateien\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanDynamicPointRenderObject.h">
-      <Filter>Headerdateien\RenderObject\dynamic</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanStaticPointRenderObject.h">
-      <Filter>Headerdateien\RenderObject\default</Filter>
+      <Filter>Headerdateien\RenderObject\static</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCudaPointRenderObject.h">
       <Filter>Headerdateien\RenderObject\Cuda</Filter>
@@ -84,7 +84,7 @@
       <Filter>Headerdateien\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\StaticPointRenderObject.h">
-      <Filter>Headerdateien\RenderObject\default</Filter>
+      <Filter>Headerdateien\RenderObject\static</Filter>
     </ClInclude>
     <ClInclude Include="include\TwoPointMovingRenderObject.h">
       <Filter>Headerdateien\RenderObject\indexLogo</Filter>
@@ -92,17 +92,29 @@
     <ClInclude Include="VulkanTwoPointMovingRenderObject.h">
       <Filter>Headerdateien\RenderObject\indexLogo</Filter>
     </ClInclude>
-    <ClInclude Include="VertexCubeShader.h">
+    <ClInclude Include="include\Array3DShader.h">
       <Filter>Headerdateien\RenderObject\dynamic</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanVertexCubeShader.h">
+    <ClInclude Include="include\VertexCubeShader.h">
       <Filter>Headerdateien\RenderObject\dynamic</Filter>
     </ClInclude>
     <ClInclude Include="VulkanArray3DShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanDynamicPointRenderObject.h">
+      <Filter>Headerdateien\RenderObject\dynamic\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanVertexCubeShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="TwoVertexCubeShader.h">
       <Filter>Headerdateien\RenderObject\dynamic</Filter>
     </ClInclude>
-    <ClInclude Include="include\Array3DShader.h">
-      <Filter>Headerdateien\RenderObject\dynamic</Filter>
+    <ClInclude Include="VukanTwoVertexCubeShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="CudaPointRenderObject2.h">
+      <Filter>Headerdateien\RenderObject\Cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

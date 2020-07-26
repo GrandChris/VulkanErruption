@@ -171,6 +171,7 @@
     <Library Include="extern\glfw-3.3.bin.WIN64\lib-vc2019\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CudaPointRenderObject2.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="glfwFPS.h" />
     <ClInclude Include="include\Array3DShader.h" />
@@ -182,8 +183,10 @@
     <ClInclude Include="include\RenderObject.h" />
     <ClInclude Include="include\StaticPointRenderObject.h" />
     <ClInclude Include="include\TwoPointMovingRenderObject.h" />
+    <ClInclude Include="include\VertexCubeShader.h" />
+    <ClInclude Include="TwoVertexCubeShader.h" />
     <ClInclude Include="upGLFWWindow.h" />
-    <ClInclude Include="VertexCubeShader.h" />
+    <ClInclude Include="VukanTwoVertexCubeShader.h" />
     <ClInclude Include="VulkanArray3DShader.h" />
     <ClInclude Include="VulkanCudaPointRenderObject.h" />
     <ClInclude Include="VulkanDynamicPointRenderObject.h" />

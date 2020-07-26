@@ -9,7 +9,7 @@
 
 
 #include <ParticleRenderer.h>
-#include <CudaPointRenderObject.h>
+#include <CudaPointRenderObject2.h>
 
 #include <CudaVertexBuffer.h>
 
