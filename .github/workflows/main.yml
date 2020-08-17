@@ -37,4 +37,4 @@ jobs:
     # trys to build the project
     - name: Build Solution (windows)
       run: MSBuild.exe VulkanErruption\VulkanErruption.vcxproj
-    MSBuild.exe CMakeHelloWorld.sln
+
