@@ -36,5 +36,5 @@ jobs:
         
     # trys to build the project
     - name: Build Solution (windows)
-      run: MSBuild.exe VulkanErruption\VulkanErruption.vcxproj
+      run: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" VulkanErruption\VulkanErruption.vcxproj
 
