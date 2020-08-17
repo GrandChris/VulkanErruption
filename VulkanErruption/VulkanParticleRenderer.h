@@ -42,10 +42,10 @@ public:
 	// D-Tor
 	~VulkanParticleRenderer();
 
-	// Geerbt über ParticleRenderer
+	// Geerbt ï¿½ber ParticleRenderer
 	//virtual void doDraw(std::vector<Vertex> const & vertices) override;
 
-	// Geerbt über ParticleRenderer
+	// Geerbt ï¿½ber ParticleRenderer
 	virtual void create(RenderObject::uPtr const& obj) override;
 	virtual void draw(RenderObject::uPtr const& obj) override;
 	virtual void cleanup(RenderObject::uPtr const& obj) override;
@@ -167,51 +167,49 @@ public:
 				std::vector<vk::UniqueBuffer>& uniformBuffers, size_t const UniformBufferObjectSize);
 		//void createUniformBuffers();
 
-			void createDescriptorPool();
+			void createDescriptorPool(vk::UniqueDescriptorPool& descriptorPool);
 
-			void createDescriptorSets(std::vector<vk::DescriptorSet> & descriptorSets,
+			void createDescriptorSets(vk::UniqueDescriptorPool& descriptorPool, std::vector<vk::DescriptorSet> & descriptorSets,
 				vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 				std::vector<vk::UniqueBuffer> const & uniformBuffers,
 				size_t const UniformBufferObjectSize);
 			//void createDescriptorSets();
 
-		void createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers,
-			vk::UniquePipelineLayout const& pipelineLayout,
+		void createCommandBuffersBegin();
+		void createCommandBuffersEnd();
+
+		void recordCommands(vk::UniquePipelineLayout const& pipelineLayout,
 			vk::UniquePipeline const& graphicsPipeline,
 			vk::UniqueBuffer const& vertexBuffer,
 			std::vector<vk::DescriptorSet> const& descriptorSets,
 			size_t const verticesCount);
 
-		void createCommandBuffers(std::vector<vk::UniqueCommandBuffer> & commandBuffers,
-			vk::UniquePipelineLayout const & pipelineLayout,
-			vk::UniquePipeline const & graphicsPipeline,
-			std::vector<vk::UniqueBuffer> const &  vertexBuffers,
-			std::vector<vk::DescriptorSet> const & descriptorSets, size_t const verticesCount);
-		//void createCommandBuffers();
+		void recordCommands(vk::UniquePipelineLayout const& pipelineLayout,
+			vk::UniquePipeline const& graphicsPipeline,
+			std::vector<vk::UniqueBuffer> const& vertexBuffers,
+			std::vector<vk::DescriptorSet> const& descriptorSets,
+			size_t const verticesCount);
 
 		void createSyncObjects();
 
 	void mainLoop();
 
-		template<typename T>
-		void drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers,
-			std::vector<vk::UniqueDeviceMemory> const & uniformBuffersMemory, 
-			T const & uniformBufferObject);
+		void drawFrameStart();
+		void drawFrameEnd();
 
-		template<typename T1, typename T2>
-		inline void drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers,
-			std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, T1 const& uniformBufferObject,
-			std::vector<vk::UniqueDeviceMemory> const& vertexBuffersMemory, std::vector<T2> const& vertices);
-		//void drawFrame();
 
 			template<typename T>
-			void updateUniformBuffer(uint32_t currentImage,
-				std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory,
+			void updateUniformBuffer(std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory,
 				T const& uniformBufferObject);
 			//void updateUniformBuffer(uint32_t currentImage);
 
 			template<typename T>
 			void updateVertexBuffer(vk::UniqueDeviceMemory const & vertexBufferMemory,
+				std::vector<T> const& vertices);
+
+
+			template<typename T>
+			void updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
 				std::vector<T> const& vertices);
 
 	void cleanup();
@@ -317,7 +315,7 @@ public:
 
 	vk::UniqueCommandPool commandPool;
 
-	//std::vector<vk::UniqueCommandBuffer> commandBuffers;
+	std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
 	// Rendering and presentation
 
@@ -328,6 +326,8 @@ public:
 	std::vector<vk::UniqueFence> inFlightFences;
 
 	size_t currentFrame = 0;
+	vk::ResultValue<uint32_t> currentImageResultValue = vk::ResultValue<uint32_t>(vk::Result::eSuccess, 0);
+	//uint32_t currentImageIndex = 0;
 
 	// Swap chain recreation
 
@@ -370,7 +370,7 @@ public:
 	//std::vector<vk::UniqueBuffer> uniformBuffers;
 
 	// Descriptor pool and sets
-	vk::UniqueDescriptorPool descriptorPool;
+	//vk::UniqueDescriptorPool descriptorPool;
 
 	//std::vector<vk::DescriptorSet> descriptorSets;
 
@@ -389,7 +389,7 @@ public:
 
 
 
-	// Geerbt über ParticleRenderer
+	// Geerbt ï¿½ber ParticleRenderer
 	virtual void setVSync(bool const vsyncEnabled) override;
 
 	virtual void setWindowSize(size_t const widht, size_t const height, bool const fullscreenEnabled = false) override;
@@ -452,123 +452,26 @@ inline void VulkanParticleRenderer::createVertexBuffers(std::vector<vk::UniqueDe
 	}
 }
 
-template<typename T>
-inline void VulkanParticleRenderer::drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers, 
-	std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, T const& uniformBufferObject)
-{
-	drawFrame(commandBuffers,
-		uniformBuffersMemory, uniformBufferObject,
-		std::vector<vk::UniqueDeviceMemory>(), std::vector<int>());
-}
-
-template<typename T1, typename T2>
-inline void VulkanParticleRenderer::drawFrame(std::vector<vk::UniqueCommandBuffer> const& commandBuffers, 
-	std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, T1 const& uniformBufferObject,
-	std::vector<vk::UniqueDeviceMemory> const& vertexBuffersMemory, std::vector<T2> const & vertices)
-{
-	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
-
-	vk::ResultValue<uint32_t> res(vk::Result::eSuccess, 0);
-	try {
-		res = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
-		if (res.result == vk::Result::eErrorOutOfDateKHR)	// window was resized, swap chain is now incompatible
-		{
-			recreateSwapChain();
-			return;
-		}
-		else if (res.result != vk::Result::eSuccess && res.result != vk::Result::eSuboptimalKHR) {
-			throw std::runtime_error("failed to acquire swap chain image!");
-		}
-	}
-	catch (vk::OutOfDateKHRError const&)
-	{
-		recreateSwapChain();
-		return;
-	}
-
-	uint32_t const imageIndex = res.value;
-
-	updateUniformBuffer(imageIndex, uniformBuffersMemory, uniformBufferObject);
-
-	if (!vertices.empty() && !vertexBuffersMemory.empty())
-	{
-		updateVertexBuffer(vertexBuffersMemory[imageIndex], vertices);
-	}
-
-
-	vk::SubmitInfo submitInfo;
-
-	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
-	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-	submitInfo.setWaitSemaphoreCount(1);
-	submitInfo.setPWaitSemaphores(waitSemaphore);
-	submitInfo.setPWaitDstStageMask(waitStages);
-	submitInfo.setCommandBufferCount(1);
-	submitInfo.setPCommandBuffers(&commandBuffers[imageIndex].get());
-
-	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].get() };
-	submitInfo.setSignalSemaphoreCount(1);
-	submitInfo.setPSignalSemaphores(signalSemaphores);
-
-	device->resetFences(inFlightFences[currentFrame].get());
-
-	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
-
-	vk::PresentInfoKHR presentInfo;
-	presentInfo.setWaitSemaphoreCount(1);
-	presentInfo.setPWaitSemaphores(signalSemaphores);
-	vk::SwapchainKHR swapChains[] = { swapChain.get() };
-	presentInfo.setSwapchainCount(1);
-	presentInfo.setPSwapchains(swapChains);
-	presentInfo.setPImageIndices(&imageIndex);
-	presentInfo.setPResults(nullptr); // optional
-
-	try {
-		auto const resPresent = presentQueue.presentKHR(presentInfo);
-		if (resPresent == vk::Result::eErrorOutOfDateKHR || resPresent == vk::Result::eSuboptimalKHR || framebufferResized)	// window was resized, swap chain is now incompatible
-		{
-			framebufferResized = false;
-			recreateSwapChain();
-		}
-		else if (res.result != vk::Result::eSuccess) {
-			throw std::runtime_error("failed to acquire swap chain image!");
-		}
-	}
-	catch (vk::OutOfDateKHRError const&)
-	{
-		framebufferResized = false;
-		recreateSwapChain();
-	}
-
-
-	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-}
 
 template<typename T>
-inline void VulkanParticleRenderer::updateUniformBuffer(uint32_t currentImage, 
-	std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, 
+inline void VulkanParticleRenderer::updateUniformBuffer(std::vector<vk::UniqueDeviceMemory> const& uniformBuffersMemory, 
 	T const& uniformBufferObject)
 {
 	assert(!uniformBuffersMemory.empty());
 	assert(device);
 
-	//static auto const startTime = std::chrono::high_resolution_clock::now();
-
-	//auto const currentTime = std::chrono::high_resolution_clock::now();
-
-	//float const time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count() / 10.0f;
+	assert(currentImageResultValue.result == vk::Result::eSuccess);
+	uint32_t const imageIndex = currentImageResultValue.value;
 
 	T ubo = uniformBufferObject;
-	//ubo.model = glm::mat4(1.0f); // glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	
 
 	ubo.view = glm::lookAt(mEye, mView, glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1; // invert Y for Vulkan
 
-	auto const data = device->mapMemory(uniformBuffersMemory[currentImage].get(), 0, sizeof(ubo));
+	auto const data = device->mapMemory(uniformBuffersMemory[imageIndex].get(), 0, sizeof(ubo));
 	memcpy(data, &ubo, static_cast<size_t>(sizeof(ubo)));
-	device->unmapMemory(uniformBuffersMemory[currentImage].get());
+	device->unmapMemory(uniformBuffersMemory[imageIndex].get());
 }
 
 
@@ -576,6 +479,9 @@ template<typename T>
 inline void VulkanParticleRenderer::updateVertexBuffer(vk::UniqueDeviceMemory const & vertexBufferMemory,
 	std::vector<T> const& vertices)
 {
+	assert(!vertexBufferMemory);
+	assert(device);
+
 	// copy vertices
 	vk::DeviceSize const bufferSize = sizeof(vertices.front()) * vertices.size();
 
@@ -585,6 +491,25 @@ inline void VulkanParticleRenderer::updateVertexBuffer(vk::UniqueDeviceMemory co
 
 	//copyBuffer(stagingBuffer.get(), vertexBuffer.get(), bufferSize);
 
-	graphicsQueue.waitIdle();
 	 
+}
+
+template<typename T>
+inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory, 
+	std::vector<T> const& vertices)
+{
+	assert(!vertexBufferMemory.empty());
+	assert(device);
+
+	assert(currentImageResultValue.result == vk::Result::eSuccess);
+	uint32_t const imageIndex = currentImageResultValue.value;
+
+	// copy vertices
+	vk::DeviceSize const bufferSize = sizeof(vertices.front()) * vertices.size();
+
+	auto & vertexMem = vertexBufferMemory[imageIndex].get();
+
+	auto const data = device->mapMemory(vertexMem, 0, bufferSize);
+	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+	device->unmapMemory(vertexMem);
 }

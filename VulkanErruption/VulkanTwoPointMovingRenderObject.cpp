@@ -22,6 +22,7 @@ void VulkanTwoPointMovingRenderObject::create(VulkanParticleRenderer& engine)
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
+	createDescriptorPool(engine);
 	createDescriptorSets(engine);
 	createCommandBuffer(engine);
 }
@@ -34,7 +35,8 @@ void VulkanTwoPointMovingRenderObject::draw(VulkanParticleRenderer& engine)
 void VulkanTwoPointMovingRenderObject::cleanup(VulkanParticleRenderer& engine)
 {
 	descriptorSets.clear();
-	commandBuffers.clear();
+	descriptorPool.reset();
+	//commandBuffers.clear();
 	uniformBuffers.clear();
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
@@ -98,14 +100,19 @@ void VulkanTwoPointMovingRenderObject::createUniformBuffer(VulkanParticleRendere
 	engine.createUniformBuffers(uniformBuffersMemory, uniformBuffers, sizeof(UniformBufferObject));
 }
 
+void VulkanTwoPointMovingRenderObject::createDescriptorPool(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorPool(descriptorPool);
+}
+
 void VulkanTwoPointMovingRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorPool, descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanTwoPointMovingRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)
 {
-	engine.createCommandBuffers(commandBuffers, pipelineLayout, graphicsPipeline,
+	engine.recordCommands(pipelineLayout, graphicsPipeline,
 		vertexBuffer, descriptorSets, mVertices.size());
 }
 
@@ -120,6 +127,6 @@ void VulkanTwoPointMovingRenderObject::drawFrame(VulkanParticleRenderer& engine)
 	UniformBufferObject ubo;
 	ubo.time = time;
 	ubo.model = glm::translate(glm::mat4(1.0f), mPos);
-	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo);
+	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
 }
 

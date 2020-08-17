@@ -212,7 +212,7 @@ TEST(TestRenderObject, DISABLED_dynamic_performance) {
 
 
 
-TEST(TestRenderObject, DISABLED_array3D_simple) 
+TEST(TestRenderObject, DISABLED_array3D_simple)
 {
 	using RenderObj = DynamicPointRenderObject<Array3DShader<>>;
 	using Vertices = std::vector<RenderObj::Vertex>;
@@ -260,7 +260,7 @@ void fill(std::vector<T>& vec, size_t const n, size_t const N)
 	}
 }
 
-TEST(TestRenderObject, array3D_performance) 
+TEST(TestRenderObject, DISABLED_array3D_performance)
 {
 
 	//size_t const n = 64'000'000;
@@ -307,6 +307,57 @@ TEST(TestRenderObject, array3D_performance)
 	app->add(std::move(obj));
 	app->setView({ 4.0, 2.0f, 1.0f });
 
+
+	app->run();
+
+
+	EXPECT_TRUE(true);
+}
+
+
+
+
+TEST(TestMultiObject, TwoCubes)
+{
+	using ShaderType = VertexCubeShader;
+	using RenderObj = DynamicPointRenderObject<ShaderType>;
+	using Vertices = std::vector<RenderObj::Vertex>;
+
+	Vertices vertices =
+	{
+		{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+		{{0.0f, 0.0f, 0.5f}, {0.5f, 0.5f, 0.5f}},
+		{{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+		{{0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
+	};
+
+	
+	auto obj = RenderObj::createVulkan();
+
+	obj->setVertices([&]() -> Vertices
+		{
+			return vertices;
+		}, vertices.size());
+
+	obj->setPosition({ 0.0f, 0.0f, 0.0f });
+
+
+	auto obj2 = RenderObj::createVulkan();
+
+	obj2->setVertices([&]() -> Vertices
+		{
+			return vertices;
+		}, vertices.size());
+
+	obj2->setPosition({ 1.0f, 0.5f, -1.0f });
+
+	
+	auto app = ParticleRenderer::createVulkan();
+	app->add(std::move(obj));
+	app->add(std::move(obj2));
+	app->setView({ 6.0, 5.0f, 1.0f });
 
 	app->run();
 

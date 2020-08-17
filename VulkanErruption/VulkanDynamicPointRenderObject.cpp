@@ -45,6 +45,7 @@ void VulkanDynamicPointRenderObject<TShader>::create(VulkanParticleRenderer& eng
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
+	createDescriptorPool(engine);
 	createDescriptorSets(engine);
 	createCommandBuffer(engine);
 }
@@ -59,7 +60,7 @@ template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::cleanup(VulkanParticleRenderer& engine)
 {
 	descriptorSets.clear();
-	commandBuffers.clear();
+	descriptorPool.reset();
 	uniformBuffers.clear();
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
@@ -115,16 +116,22 @@ void VulkanDynamicPointRenderObject<TShader>::createUniformBuffer(VulkanParticle
 }
 
 template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createDescriptorPool(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorPool(descriptorPool);
+}
+
+template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(TShader::UniformBufferObject));
+	engine.createDescriptorSets(descriptorPool, descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(TShader::UniformBufferObject));
 }
 
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticleRenderer& engine)
 {
-	engine.createCommandBuffers(commandBuffers, 
-		pipelineLayout, graphicsPipeline,
+	engine.recordCommands(pipelineLayout, 
+		graphicsPipeline,
 		vertexBuffers, 
 		descriptorSets, 
 		DynamicPointRenderObject<TShader>::mVertices.size());
@@ -138,7 +145,9 @@ void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& 
 
 	auto ubo = DynamicPointRenderObject<TShader>::mUbo;
 	ubo.model = glm::translate(glm::mat4(1.0f), DynamicPointRenderObject<TShader>::mPos);
-	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo, vertexBufferMemory, DynamicPointRenderObject<TShader>::mVertices);
+
+	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
+	engine.updateVertexBuffer(vertexBufferMemory, DynamicPointRenderObject<TShader>::mVertices);
 }
 
 

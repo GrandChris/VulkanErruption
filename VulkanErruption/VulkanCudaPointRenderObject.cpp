@@ -46,6 +46,7 @@ void VulkanCudaPointRenderObject::create(VulkanParticleRenderer& engine)
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
 	createUniformBuffer(engine);
+	createDescriptorPool(engine);
 	createDescriptorSets(engine);
 	createCommandBuffer(engine);
 }
@@ -58,7 +59,7 @@ void VulkanCudaPointRenderObject::draw(VulkanParticleRenderer& engine)
 void VulkanCudaPointRenderObject::cleanup(VulkanParticleRenderer& engine)
 {
 	descriptorSets.clear();
-	commandBuffers.clear();
+	descriptorPool.reset();
 	uniformBuffers.clear();
 	uniformBuffersMemory.clear();
 	graphicsPipeline.reset();
@@ -202,14 +203,19 @@ void VulkanCudaPointRenderObject::createUniformBuffer(VulkanParticleRenderer& en
 	engine.createUniformBuffers(uniformBuffersMemory, uniformBuffers, sizeof(UniformBufferObject));
 }
 
+void VulkanCudaPointRenderObject::createDescriptorPool(VulkanParticleRenderer& engine)
+{
+	engine.createDescriptorPool(descriptorPool);
+}
+
 void VulkanCudaPointRenderObject::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
+	engine.createDescriptorSets(descriptorPool, descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(UniformBufferObject));
 }
 
 void VulkanCudaPointRenderObject::createCommandBuffer(VulkanParticleRenderer& engine)
 {
-	engine.createCommandBuffers(commandBuffers, pipelineLayout, graphicsPipeline,
+	engine.recordCommands(pipelineLayout, graphicsPipeline,
 		vertexBuffer, descriptorSets, mExternalVertexBufferSize);
 }
 
@@ -221,6 +227,6 @@ void VulkanCudaPointRenderObject::drawFrame(VulkanParticleRenderer& engine)
 
 	UniformBufferObject ubo;
 	ubo.view = glm::lookAt(mPos, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	engine.drawFrame(commandBuffers, uniformBuffersMemory, ubo);
+	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
 }
 

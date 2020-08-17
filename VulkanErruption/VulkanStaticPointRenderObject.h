@@ -45,6 +45,8 @@ private:
 
 	void createUniformBuffer(VulkanParticleRenderer& engine);
 
+	void createDescriptorPool(VulkanParticleRenderer& engine);
+
 	void createDescriptorSets(VulkanParticleRenderer& engine);
 
 	void createCommandBuffer(VulkanParticleRenderer& engine);
@@ -70,6 +72,9 @@ private:
 
 	// Command Buffers
 	std::vector<vk::UniqueCommandBuffer> commandBuffers;
+
+	// Descriptor Pool
+	vk::UniqueDescriptorPool descriptorPool;
 
 	// Descriptor sets
 	std::vector<vk::DescriptorSet> descriptorSets;

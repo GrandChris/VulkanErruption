@@ -141,6 +141,7 @@ void VulkanParticleRenderer::cleanup(RenderObject::uPtr const& obj)
 
 void VulkanParticleRenderer::run() 
 {
+	createCommandBuffersEnd();
 	mainLoop();
 	cleanup();
 }
@@ -188,9 +189,9 @@ void VulkanParticleRenderer::initVulkan()
 	createFramebuffers();
 	//createVertexBuffer();
 	//createUniformBuffers();
-	createDescriptorPool();
+	//createDescriptorPool();
 	//createDescriptorSets();
-	//createCommandBuffers();
+	createCommandBuffersBegin();
 	createSyncObjects();
 }
 
@@ -803,7 +804,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vk::PipelineRasterizationStateCreateInfo rasterizer;
 	rasterizer.setDepthClampEnable(VK_FALSE);
 	rasterizer.setRasterizerDiscardEnable(VK_FALSE);
-	rasterizer.setPolygonMode(vk::PolygonMode::eLine);
+	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 	rasterizer.setLineWidth(1.0f);
 	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
 	//rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
@@ -1134,7 +1135,7 @@ void VulkanParticleRenderer::createUniformBuffers(std::vector<vk::UniqueDeviceMe
 }
 
 
-void VulkanParticleRenderer::createDescriptorPool()
+void VulkanParticleRenderer::createDescriptorPool(vk::UniqueDescriptorPool & descriptorPool)
 {
 	vk::DescriptorPoolSize poolSize;
 	poolSize.setDescriptorCount(static_cast<uint32_t>(swapChainImages.size()));
@@ -1147,7 +1148,8 @@ void VulkanParticleRenderer::createDescriptorPool()
 	descriptorPool = device->createDescriptorPoolUnique(poolInfo);
 }
 
-void VulkanParticleRenderer::createDescriptorSets(std::vector<vk::DescriptorSet>& descriptorSets, 
+void VulkanParticleRenderer::createDescriptorSets(vk::UniqueDescriptorPool& descriptorPool, 
+	std::vector<vk::DescriptorSet>& descriptorSets,
 	vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 	std::vector<vk::UniqueBuffer> const& uniformBuffers, size_t const UniformBufferObjectSize)
 {
@@ -1183,16 +1185,8 @@ void VulkanParticleRenderer::createDescriptorSets(std::vector<vk::DescriptorSet>
 	}
 }
 
-void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers,
-	vk::UniquePipelineLayout const& pipelineLayout,
-	vk::UniquePipeline const& graphicsPipeline, 
-	vk::UniqueBuffer const& vertexBuffer, 
-	std::vector<vk::DescriptorSet> const& descriptorSets, size_t const verticesCount)
+void VulkanParticleRenderer::createCommandBuffersBegin()
 {
-	assert(pipelineLayout);
-	assert(graphicsPipeline);
-	assert(vertexBuffer);
-	assert(!descriptorSets.empty());
 	assert(device);
 	assert(commandPool);
 	assert(!swapChainFramebuffers.empty());
@@ -1226,32 +1220,50 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 		renderPassInfo.setPClearValues(clearValues.data());
 
 		commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+	}
+}
 
-		commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
+void VulkanParticleRenderer::createCommandBuffersEnd()
+{
+	assert(!commandBuffers.empty());
 
-		//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
-		//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
-		//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
-
-#pragma warning( push )
-#pragma warning( disable : 4297 )
-		commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
-#pragma warning( pop ) 
-
-		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
-
-		commandBuffers[i]->draw(static_cast<uint32_t>(verticesCount), 1, 0, 0);
-
+	for (size_t i = 0; i < commandBuffers.size(); i++)
+	{
 		commandBuffers[i]->endRenderPass();
 
 		commandBuffers[i]->end();
 	}
 }
 
-void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandBuffer>& commandBuffers,
-	vk::UniquePipelineLayout const& pipelineLayout, vk::UniquePipeline const& graphicsPipeline, 
-	std::vector<vk::UniqueBuffer> const& vertexBuffers, 
-	std::vector<vk::DescriptorSet> const& descriptorSets, 
+void VulkanParticleRenderer::recordCommands(vk::UniquePipelineLayout const& pipelineLayout, vk::UniquePipeline const& graphicsPipeline, vk::UniqueBuffer const& vertexBuffer, std::vector<vk::DescriptorSet> const& descriptorSets, size_t const verticesCount)
+{
+	assert(pipelineLayout);
+	assert(graphicsPipeline);
+	assert(!vertexBuffer);
+	assert(!descriptorSets.empty());
+	assert(device);
+	assert(commandPool);
+	assert(!swapChainFramebuffers.empty());
+
+	for (size_t i = 0; i < commandBuffers.size(); i++)
+	{
+		commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
+
+		#pragma warning( push )
+		#pragma warning( disable : 4297 )
+		commandBuffers[i]->bindVertexBuffers(0, vertexBuffer.get(), vk::DeviceSize());
+		#pragma warning( pop ) 
+
+		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
+
+		commandBuffers[i]->draw(static_cast<uint32_t>(verticesCount), 1, 0, 0);
+	}
+}
+
+void VulkanParticleRenderer::recordCommands(vk::UniquePipelineLayout const& pipelineLayout, 
+	vk::UniquePipeline const& graphicsPipeline,
+	std::vector<vk::UniqueBuffer> const& vertexBuffers,
+	std::vector<vk::DescriptorSet> const& descriptorSets,
 	size_t const verticesCount)
 {
 	assert(pipelineLayout);
@@ -1262,52 +1274,20 @@ void VulkanParticleRenderer::createCommandBuffers(std::vector<vk::UniqueCommandB
 	assert(commandPool);
 	assert(!swapChainFramebuffers.empty());
 
-	vk::CommandBufferAllocateInfo allocInfo;
-	allocInfo.setCommandPool(commandPool.get());
-	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-	allocInfo.setCommandBufferCount(static_cast<uint32_t>(swapChainFramebuffers.size()));
-
-	commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
 
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
-		vk::CommandBufferBeginInfo beginInfo;
-		//beginInfo.setFlags( ); // Optional
-		beginInfo.setPInheritanceInfo(nullptr); // Optional
-
-		commandBuffers[i]->begin(beginInfo);
-
-		vk::RenderPassBeginInfo renderPassInfo;
-		renderPassInfo.setRenderPass(renderPass.get());
-		renderPassInfo.setFramebuffer(swapChainFramebuffers[i].get());
-		renderPassInfo.renderArea.setOffset({ 0, 0 });
-		renderPassInfo.renderArea.setExtent(swapChainExtent);
-
-		std::array<vk::ClearValue, 2> clearValues = {};
-		clearValues[0].setColor(std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f });
-		clearValues[1].setDepthStencil({ 1.0f, 0 });
-
-		renderPassInfo.setClearValueCount(static_cast<uint32_t>(clearValues.size()));
-		renderPassInfo.setPClearValues(clearValues.data());
-
-		commandBuffers[i]->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
 		commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
 
-		//vk::ArrayProxy<vk::Buffer const> vertexBuffers = { vertexBuffer.get() };
-		//vk::ArrayProxy<vk::DeviceSize const> offsets = { 0 };
-		//commandBuffers[i]->bindVertexBuffers(0, vertexBuffers, offsets);	// fails on release build
 		commandBuffers[i]->bindVertexBuffers(0, vertexBuffers[i].get(), vk::DeviceSize());
 
 		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
 
 		commandBuffers[i]->draw(static_cast<uint32_t>(verticesCount), 1, 0, 0);
-
-		commandBuffers[i]->endRenderPass();
-
-		commandBuffers[i]->end();
 	}
 }
+
+
 
 
 void VulkanParticleRenderer::createSyncObjects()
@@ -1329,16 +1309,96 @@ void VulkanParticleRenderer::mainLoop()
 	while (!glfwWindowShouldClose(window.get())) {
 		glfwPollEvents();
 		//drawFrame();
+
+		drawFrameStart();
 		for (auto const& elem : mObjs)
 		{
 			elem->draw(*this);
 		}
+		drawFrameEnd();
 
 		mFPS.showFPS(window.get());
 	}
 
 	device->waitIdle();
 	
+}
+
+void VulkanParticleRenderer::drawFrameStart()
+{
+	device->waitForFences(inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
+
+	//vk::ResultValue<uint32_t> res(vk::Result::eSuccess, 0);
+	try {
+		currentImageResultValue = device->acquireNextImageKHR(swapChain.get(), UINT64_MAX, imageAvailableSemaphores[currentFrame].get(), nullptr);
+		if (currentImageResultValue.result == vk::Result::eErrorOutOfDateKHR)	// window was resized, swap chain is now incompatible
+		{
+			recreateSwapChain();
+			return;
+		}
+		else if (currentImageResultValue.result != vk::Result::eSuccess && currentImageResultValue.result != vk::Result::eSuboptimalKHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const&)
+	{
+		recreateSwapChain();
+		return;
+	}
+}
+
+void VulkanParticleRenderer::drawFrameEnd()
+{
+	assert(currentImageResultValue.result == vk::Result::eSuccess);
+	uint32_t const imageIndex = currentImageResultValue.value;
+
+	graphicsQueue.waitIdle();
+
+	vk::SubmitInfo submitInfo;
+
+	vk::Semaphore waitSemaphore[] = { imageAvailableSemaphores[currentFrame].get() };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	submitInfo.setWaitSemaphoreCount(1);
+	submitInfo.setPWaitSemaphores(waitSemaphore);
+	submitInfo.setPWaitDstStageMask(waitStages);
+	submitInfo.setCommandBufferCount(1);
+	submitInfo.setPCommandBuffers(&commandBuffers[imageIndex].get());
+
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].get() };
+	submitInfo.setSignalSemaphoreCount(1);
+	submitInfo.setPSignalSemaphores(signalSemaphores);
+
+	device->resetFences(inFlightFences[currentFrame].get());
+
+	graphicsQueue.submit(submitInfo, inFlightFences[currentFrame].get());
+
+	vk::PresentInfoKHR presentInfo;
+	presentInfo.setWaitSemaphoreCount(1);
+	presentInfo.setPWaitSemaphores(signalSemaphores);
+	vk::SwapchainKHR swapChains[] = { swapChain.get() };
+	presentInfo.setSwapchainCount(1);
+	presentInfo.setPSwapchains(swapChains);
+	presentInfo.setPImageIndices(&imageIndex);
+	presentInfo.setPResults(nullptr); // optional
+
+	try {
+		auto const resPresent = presentQueue.presentKHR(presentInfo);
+		if (resPresent == vk::Result::eErrorOutOfDateKHR || resPresent == vk::Result::eSuboptimalKHR || framebufferResized)	// window was resized, swap chain is now incompatible
+		{
+			framebufferResized = false;
+			recreateSwapChain();
+		}
+		else if (currentImageResultValue.result != vk::Result::eSuccess) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+	}
+	catch (vk::OutOfDateKHRError const&)
+	{
+		framebufferResized = false;
+		recreateSwapChain();
+	}
+
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 
@@ -1366,14 +1426,16 @@ void VulkanParticleRenderer::recreateSwapChain()
 	createDepthResources();
 	createFramebuffers();
 	//createUniformBuffers();
-	createDescriptorPool();
+	//createDescriptorPool();
 	//createDescriptorSets();
-	//createCommandBuffers();
+	createCommandBuffersBegin();
 
 	for (auto& elem : mObjs)
 	{
 		elem->create(*this);
 	}
+
+	createCommandBuffersEnd();
 	
 }
 
@@ -1386,8 +1448,8 @@ void VulkanParticleRenderer::cleanupSwapChain()
 
 	swapChainFramebuffers.clear();
 	//descriptorSets.clear();
-	descriptorPool.reset();	
-	//commandBuffers.clear();
+	//descriptorPool.reset();	
+	commandBuffers.clear();
 	//uniformBuffers.clear();
 	//uniformBuffersMemory.clear();
 	depthImageView.reset();
