@@ -6,222 +6,196 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 model;
     mat4 view;
     mat4 proj;
+    vec3 color;
     uvec2 maxIndex;
 } ubo;
 
 layout(points) in;
 
-// layout(points, max_vertices=3) out;
-// layout(line_strip, max_vertices=3) out;
-layout(triangle_strip, max_vertices=24) out;
-// layout(line_strip, max_vertices=24) out;
+// layout(points, max_vertices=12) out;
+// layout(line_strip, max_vertices=12) out;
+layout(triangle_strip, max_vertices=12) out;
 
 layout(location = 0) in vec3 pos1[];
 layout(location = 1) in vec3 pos2[];
 layout(location = 2) in vec3 pos3[];
 layout(location = 3) in vec3 pos4[];
-layout(location = 4) in uint valid[];
+
+layout(location = 4) in vec3 inColor[];
+
+layout(location = 0) out vec3 lineColor;
+layout(location = 1) out vec3 baseColor;
+layout(location = 2) out vec3 barycentricCoordinates;
 
 
-// specular lighting
-// layout(location = 1) out vec3 fragPosition;
-// layout(location = 2) out vec3 fragNormal;
-// layout(location = 3) out vec3 lightDirection;
-// layout(location = 4) out vec3 viewPosition;
-// layout(location = 5) out vec3 fragBaseColor;
+// Lighting
+const vec3 lightPos = vec3(1.0f, 0.5f, 0.7f);
+const vec3 lightDir = normalize(lightPos);
+const float ambient = 0.2;
+const float diffuse = 0.5;
 
-
-// // Vertices
-// const float a = 0.5f;
-// const vec3 frontTopLeft =     vec3( a, -a,  a);    
-// const vec3 frontTopRight =    vec3( a,  a,  a);   
-// const vec3 frontBottomLeft =  vec3( a, -a, -a); 
-// const vec3 frontBottomRight = vec3( a,  a, -a);     
-
-// const vec3 BackTopLeft =      vec3(-a, -a,  a);  
-// const vec3 BackTopRight =     vec3(-a,  a,  a);    
-// const vec3 BackBottomLeft =   vec3(-a, -a, -a);   
-// const vec3 BackBottomRight =  vec3(-a,  a, -a);   
-
-// const int facesSize = 6;
-// const int vertPerFace = 4;
-// const int cubeSize = facesSize * vertPerFace;
-// const vec3 cube[cubeSize] = 
-// {
-//     frontTopLeft, 
-//     frontBottomLeft, 
-//     frontTopRight, 
-//     frontBottomRight, 
-
-//     BackBottomLeft, 
-//     BackTopLeft, 
-//     BackBottomRight, 
-//     BackTopRight, 
-
-//     BackTopLeft, 
-//     BackBottomLeft, 
-//     frontTopLeft, 
-//     frontBottomLeft, 
-
-//     frontTopRight,
-//     frontBottomRight,
-//     BackTopRight,
-//     BackBottomRight,
-
-//     BackTopLeft, 
-//     frontTopLeft,
-//     BackTopRight,
-//     frontTopRight,
-
-//     frontBottomLeft, 
-//     BackBottomLeft,
-//     frontBottomRight,
-//     BackBottomRight
-// };
-
-// // Normals
-// const vec3 front =  vec3( 1.0f,  0.0f,  0.0f);    
-// const vec3 back =   vec3(-1.0f,  0.0f,  0.0f);    
-// const vec3 left =   vec3( 0.0f, -1.0f,  0.0f);    
-// const vec3 right =  vec3( 0.0f,  1.0f,  0.0f);    
-// const vec3 top =    vec3( 0.0f,  0.0f,  1.0f);    
-// const vec3 bottom = vec3( 0.0f,  0.0f, -1.0f);  
-
-// const vec3 normals[cubeSize] =
-// {
-
-//     front,
-//     front,
-//     front,
-//     front,
-
-//     back,
-//     back,
-//     back,
-//     back,
-
-//     left,
-//     left,
-//     left,
-//     left,
-
-//     right,
-//     right,
-//     right,
-//     right,
-
-//     top,
-//     top,
-//     top,
-//     top,
-
-//     bottom,
-//     bottom,
-//     bottom,
-//     bottom
-// };
-
-
-// // Lighting
-// const vec3 lightPos = vec3(1.0f, 0.7f, 0.5f);
-// const vec3 lightDir = normalize(lightPos);
-// const float ambient = 0.2;
-// const float diffuse = 0.5;
-
-// const float strenghtFront =  ambient + diffuse * max(0,dot(lightDir, front));
-// const float strenghtBack =   ambient + diffuse * max(0,dot(lightDir, back));
-// const float strenghtLeft =   ambient + diffuse * max(0,dot(lightDir, left));
-// const float strenghtRight =  ambient + diffuse * max(0,dot(lightDir, right));
-// const float strenghTop =     ambient + diffuse * max(0,dot(lightDir, top));
-// const float strenghtBottom = ambient + diffuse * max(0,dot(lightDir, bottom));
-
-// const float strenght[cubeSize] =
-// {
-
-//     strenghtFront,
-//     strenghtFront,
-//     strenghtFront,
-//     strenghtFront,
-
-//     strenghtBack,
-//     strenghtBack,
-//     strenghtBack,
-//     strenghtBack,
-
-//     strenghtLeft,
-//     strenghtLeft,
-//     strenghtLeft,
-//     strenghtLeft,
-
-//     strenghtRight,
-//     strenghtRight,
-//     strenghtRight,
-//     strenghtRight,
-
-//     strenghTop,
-//     strenghTop,
-//     strenghTop,
-//     strenghTop,
-
-//     strenghtBottom,
-//     strenghtBottom,
-//     strenghtBottom,
-//     strenghtBottom
-// };
-
-// vec3 ExtractCameraPos_NoScale(const mat4 a_modelView)
-// {
-//   mat3 rotMat = mat3(a_modelView);
-//   vec3 d = vec3(a_modelView[3]);
-
-//   vec3 retVec = -d * rotMat;
-//   return retVec;
-// }
+// Base Color
+const vec3 base = vec3(0.25f, 0.25f, 0.25f);
 
 void main()
 {	
+    // ####### Line Color #######
+    const vec3 color = inColor[0];
+
+    // ####### Calculate Vectors and Lengths #######
+    const vec3 center = (pos1[0] + pos2[0] + pos3[0] + pos4[0]) / 4;
+
+    const vec3 v12 = pos2[0] - pos1[0];
+    const vec3 v24 = pos4[0] - pos2[0];
+    const vec3 v43 = pos3[0] - pos4[0];
+    const vec3 v31 = pos1[0] - pos3[0];
+
+    const vec3 vc1 = pos1[0] - center;
+    const vec3 vc2 = pos2[0] - center;
+    const vec3 vc3 = pos3[0] - center;
+    const vec3 vc4 = pos4[0] - center;
+
+    const float l12 = length(v12);
+    const float l24 = length(v24);
+    const float l43 = length(v43);
+    const float l31 = length(v31);
+
+    const float lc1 = length(vc1);
+    const float lc2 = length(vc2);
+    const float lc3 = length(vc3);
+    const float lc4 = length(vc4);
+
+    // ####### Calculate Barycentric Heights #######
+
+    const vec3 vnorm1 = cross(v12, vc1);
+    const vec3 vnorm2 = cross(v24, vc2);
+    const vec3 vnorm3 = cross(v43, vc4);
+    const vec3 vnorm4 = cross(v31, vc3);
+
+    const float A1 = length(vnorm1);
+    const float A2 = length(vnorm2);
+    const float A3 = length(vnorm3);
+    const float A4 = length(vnorm4);
+
+    const float h1 = A1 / l12 * 2;
+    const float h2 = A2 / l24 * 2;
+    const float h3 = A3 / l43 * 2;
+    const float h4 = A4 / l31 * 2;
+
+    // ####### Calculate Lighting #######
+
+    const vec3 norm1 = normalize(vnorm1); 
+    const vec3 norm2 = normalize(vnorm2); 
+    const vec3 norm3 = normalize(vnorm3); 
+    const vec3 norm4 = normalize(vnorm4); 
+
+    const float strength1 = ambient + max(0,dot(lightDir, norm1));
+    const float strength2 = ambient + max(0,dot(lightDir, norm2));
+    const float strength3 = ambient + max(0,dot(lightDir, norm3));
+    const float strength4 = ambient + max(0,dot(lightDir, norm4));
+
+    const vec3 baseColor1 = base * strength1;
+    const vec3 baseColor2 = base * strength2;
+    const vec3 baseColor3 = base * strength3;
+    const vec3 baseColor4 = base * strength4;
+
+    // ####### Transform Vertices #######
+
     const mat4 mvp = ubo.proj * ubo.view * ubo.model;
 
-    gl_Position = mvp * vec4(pos1[0], 1.0f); 
+    const vec4 pos1t = mvp * vec4(pos1[0], 1.0f);
+    const vec4 pos2t = mvp * vec4(pos2[0], 1.0f);
+    const vec4 pos3t = mvp * vec4(pos3[0], 1.0f);
+    const vec4 pos4t = mvp * vec4(pos4[0], 1.0f);
+    const vec4 centert = mvp * vec4(center, 1.0f);
+ 
+    // ######## Create Triangles #######
+
+    // first triangle
+    gl_Position = centert; 
+    // barycentricCoordinates = vec3(h1, 0.0f, 0.0f);
+    barycentricCoordinates = vec3(1.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor1;
     EmitVertex();
-    gl_Position = mvp * vec4(pos2[0], 1.0f); 
+
+    gl_Position = pos1t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor1;
     EmitVertex();
-    gl_Position = mvp * vec4(pos3[0], 1.0f); 
+
+    gl_Position = pos2t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor1;
     EmitVertex();
-    gl_Position = mvp * vec4(pos4[0], 1.0f); 
-    EmitVertex();
+
     EndPrimitive();
 
+    // second triangle
+    gl_Position = centert; 
+    // barycentricCoordinates = vec3(h2, 0.0f, 0.0f);
+    barycentricCoordinates = vec3(1.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor2;
+    EmitVertex();
 
+    gl_Position = pos2t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor2;
+    EmitVertex();
 
+    gl_Position = pos4t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor2;
+    EmitVertex();
 
-    // for(int i = 0; i < facesSize; ++i)
-    // {
-    //     for(int j = 0; j < vertPerFace; ++j)
-    //     {
-    //         const int index = i * vertPerFace + j;
-    //         fragColor = color[0] * strenght[index];
+    EndPrimitive();
 
-    //         // calculate middle and scale each axis with the size
-    //         const vec3 pos1_ = pos1[0];
-    //         const vec3 pos2_ = pos2[0];
+    // third triangle
+    gl_Position = centert; 
+    // barycentricCoordinates = vec3(h3, 0.0f, 0.0f);
+    barycentricCoordinates = vec3(1.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor3;
+    EmitVertex();
 
-    //         const vec3 size = pos2_ - pos1_;
-    //         const vec3 middle = pos1_ + size * 0.5f;
+    gl_Position = pos4t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor3;
+    EmitVertex();
 
-    //         const vec4 pos = vec4(middle +cube[index] * size, 1.0f);
+    gl_Position = pos3t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor3;
+    EmitVertex();
 
-    //         gl_Position = mvp * pos;
-            
-    //         // for specular lighting
-    //         fragPosition = vec3(ubo.model * pos);
-    //         fragBaseColor = color[0];
-    //         fragNormal = normals[index], 1.0f;
-    //         lightDirection = lightDir, 1.0f;
-    //         viewPosition = ExtractCameraPos_NoScale(ubo.view);
+    EndPrimitive();
 
-    //         EmitVertex();
-    //     }
-    //     EndPrimitive();
-    // }
+    // fourth triangle
+    gl_Position = centert; 
+    // barycentricCoordinates = vec3(h4, 0.0f, 0.0f);
+    barycentricCoordinates = vec3(1.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor4;
+    EmitVertex();
+
+    gl_Position = pos3t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor4;
+    EmitVertex();
+
+    gl_Position = pos1t; 
+    barycentricCoordinates = vec3(0.0f, 0.0f, 0.0f);
+    lineColor = color;
+    baseColor = baseColor4;
+    EmitVertex();
+
+    EndPrimitive();
 }  

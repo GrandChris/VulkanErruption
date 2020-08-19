@@ -15,6 +15,7 @@
 #include "TwoPointMovingRenderObject.h"
 #include "DynamicPointRenderObject.h"
 #include "Array3DShader.h"
+#include "Grid2DShader.h"
 
 #include <iostream>
 #include <thread>
@@ -317,7 +318,7 @@ TEST(TestRenderObject, DISABLED_array3D_performance)
 
 
 
-TEST(TestMultiObject, TwoCubes)
+TEST(TestMultiObject, DISABLED_TwoCubes)
 {
 	using ShaderType = VertexCubeShader;
 	using RenderObj = DynamicPointRenderObject<ShaderType>;
@@ -358,6 +359,54 @@ TEST(TestMultiObject, TwoCubes)
 	app->add(std::move(obj));
 	app->add(std::move(obj2));
 	app->setView({ 6.0, 5.0f, 1.0f });
+
+	app->run();
+
+
+	EXPECT_TRUE(true);
+}
+
+
+TEST(TestRenderObject, Grid2D)
+{
+	using ShaderType = Grid2DShader;
+	using RenderObj = DynamicPointRenderObject<ShaderType>;
+	using Vertices = std::vector<RenderObj::Vertex>;
+
+	size_t const n = 5;
+	std::vector<float> heights =
+	{
+		{0.11f}, {0.12f}, {0.13f}, {0.14f}, {0.15f},
+		{0.21f}, {4.22f}, {4.23f}, {0.24f}, {0.25f},
+		{0.31f}, {0.32f}, {4.33f}, {0.34f}, {0.35f},
+		{0.41f}, {4.42f}, {4.43f}, {0.44f}, {0.45f},
+		{0.51f}, {0.52f}, {0.53f}, {0.54f}, {0.55f}
+	};
+
+	auto vertices = Grid2DShader::convertToVertex(heights, n);
+
+	auto app = ParticleRenderer::createVulkan();
+	auto obj = RenderObj::createVulkan();
+
+	float t = 0;
+	obj->setVertices([&]() -> Vertices
+		{
+			t += 0.00005f;
+
+			app->setView({ 6.0 * sin(t), 6.0f * cos(t), 8.0f });
+
+			return vertices;
+		}, vertices.size());
+
+	obj->setPosition({ -2.5f, -2.5f, -1.0f });
+	ShaderType::UniformBufferObject ubo;
+	ubo.maxIndex = glm::uvec2(n, n);
+	obj->setUbo(ubo);
+
+
+	
+	app->add(std::move(obj));
+	
 
 	app->run();
 

@@ -178,6 +178,7 @@
     <ClInclude Include="include\CudaPointRenderObject.h" />
     <ClInclude Include="include\DynamicPointRenderObject.h" />
     <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\Grid2DShader.h" />
     <ClInclude Include="include\Key.h" />
     <ClInclude Include="include\ParticleRenderer.h" />
     <ClInclude Include="include\RenderObject.h" />
@@ -190,6 +191,7 @@
     <ClInclude Include="VulkanArray3DShader.h" />
     <ClInclude Include="VulkanCudaPointRenderObject.h" />
     <ClInclude Include="VulkanDynamicPointRenderObject.h" />
+    <ClInclude Include="VulkanGrid2DShader.h" />
     <ClInclude Include="VulkanParticleRenderer.h" />
     <ClInclude Include="VulkanStaticPointRenderObject.h" />
     <ClInclude Include="VulkanTwoPointMovingRenderObject.h" />

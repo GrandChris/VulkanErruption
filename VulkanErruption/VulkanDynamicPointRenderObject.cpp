@@ -11,6 +11,7 @@
 #include "VulkanVertexCubeShader.h"
 #include "VulkanArray3DShader.h"
 #include "VukanTwoVertexCubeShader.h"
+#include "VulkanGrid2DShader.h"
 
 
 // needs explicit instantiation for every used shader
@@ -25,6 +26,7 @@ template DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::uPtr Dynamic
 template DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::uPtr DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::createVulkan();
 template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr  DynamicPointRenderObject<Array3DShader<eShader::Points>>::createVulkan();
 
+template DynamicPointRenderObject<Grid2DShader>::uPtr DynamicPointRenderObject<Grid2DShader>::createVulkan();
 
 
 
