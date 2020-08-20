@@ -49,9 +49,8 @@ public:
 	static uPtr createVulkan();
 
 protected:
-	std::function<std::vector<Vertex>(void)> mVerticesFunc;
+	std::function<void(Vertex* begin, Vertex* end)> mVerticesFunc;
 
-	std::vector<Vertex> mVertices;
 	size_t mVerticesSize = 0;
 	glm::vec3 mPos;
 	UniformBufferObject mUbo;
@@ -66,9 +65,6 @@ inline void DynamicPointRenderObject<TShader>::setVertices(TFunc & funcObj, size
 {
 	mVerticesSize = arraySize;
 	mVerticesFunc = funcObj;
-	mVertices = funcObj();
-
-	assert(mVerticesSize == mVertices.size());
 }
 
 template<typename TShader>

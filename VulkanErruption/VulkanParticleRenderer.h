@@ -212,6 +212,10 @@ public:
 			void updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
 				std::vector<T> const& vertices);
 
+			template<typename T, typename TFunc>
+			void updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
+				TFunc & func, size_t const size);
+
 	void cleanup();
 
 	void recreateSwapChain();
@@ -466,7 +470,7 @@ inline void VulkanParticleRenderer::updateUniformBuffer(std::vector<vk::UniqueDe
 	T ubo = uniformBufferObject;
 
 	ubo.view = glm::lookAt(mEye, mView, glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100000.0f);
 	ubo.proj[1][1] *= -1; // invert Y for Vulkan
 
 	auto const data = device->mapMemory(uniformBuffersMemory[imageIndex].get(), 0, sizeof(ubo));
@@ -511,5 +515,31 @@ inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDev
 
 	auto const data = device->mapMemory(vertexMem, 0, bufferSize);
 	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+	device->unmapMemory(vertexMem);
+}
+
+
+template<typename T, typename TFunc>
+inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
+	TFunc & func, size_t const size)
+{
+	assert(!vertexBufferMemory.empty());
+	assert(device);
+
+	assert(currentImageResultValue.result == vk::Result::eSuccess);
+	uint32_t const imageIndex = currentImageResultValue.value;
+
+	auto& vertexMem = vertexBufferMemory[imageIndex].get();
+
+	// copy vertices
+	vk::DeviceSize const bufferSize = sizeof(T) * size;
+
+	auto const data = device->mapMemory(vertexMem, 0, bufferSize);
+
+		auto begin = reinterpret_cast<T*>(data);
+		auto end = reinterpret_cast<T*>(data) + size;
+
+		func(begin, end);
+
 	device->unmapMemory(vertexMem);
 }

@@ -136,20 +136,20 @@ void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticle
 		graphicsPipeline,
 		vertexBuffers, 
 		descriptorSets, 
-		DynamicPointRenderObject<TShader>::mVertices.size());
+		DynamicPointRenderObject<TShader>::mVerticesSize);
 }
 
 
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& engine)
 {
-	DynamicPointRenderObject<TShader>::mVertices = DynamicPointRenderObject<TShader>::mVerticesFunc();
-
 	auto ubo = DynamicPointRenderObject<TShader>::mUbo;
 	ubo.model = glm::translate(glm::mat4(1.0f), DynamicPointRenderObject<TShader>::mPos);
 
 	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
-	engine.updateVertexBuffer(vertexBufferMemory, DynamicPointRenderObject<TShader>::mVertices);
+
+	engine.updateVertexBuffer<DynamicPointRenderObject<TShader>::Vertex>(vertexBufferMemory, 
+		DynamicPointRenderObject<TShader>::mVerticesFunc, DynamicPointRenderObject<TShader>::mVerticesSize);
 }
 
 
