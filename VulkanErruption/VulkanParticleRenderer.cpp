@@ -185,6 +185,7 @@ void VulkanParticleRenderer::initVulkan()
 	//createDescriptorSetLayout();
 	//createGraphicsPipeline();
 	createCommandPool();
+	createColorResources();
 	createDepthResources();
 	createFramebuffers();
 	//createVertexBuffer();
@@ -328,6 +329,11 @@ void VulkanParticleRenderer::pickPhysicalDevice()
 	if (!candidates.empty() && candidates.rbegin()->first > 0 && isDeviceSuitable(candidates.rbegin()->second))
 	{
 		physicalDevice = candidates.rbegin()->second;
+
+		// Get MSAA count
+		vk::SampleCountFlagBits const maxMsaaSamples = getMaxUsableSampleCount();
+		#undef min
+		msaaSamples = std::min(msaaSamplesPrefered, maxMsaaSamples);
 	}
 	else
 	{
@@ -403,6 +409,38 @@ VulkanParticleRenderer::QueueFamilyIndices VulkanParticleRenderer::findQueueFami
 	return indices;
 }
 
+vk::SampleCountFlagBits VulkanParticleRenderer::getMaxUsableSampleCount()
+{
+	assert(physicalDevice);
+
+	vk::PhysicalDeviceProperties const physicalDeviceProperties = physicalDevice.getProperties();
+
+	vk::SampleCountFlags const counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & 
+								        physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+	
+	if (counts & vk::SampleCountFlagBits::e64) {
+		return   vk::SampleCountFlagBits::e64;
+	}
+	else if (counts & vk::SampleCountFlagBits::e32) {
+		return        vk::SampleCountFlagBits::e32;
+	}
+	else if (counts & vk::SampleCountFlagBits::e16) {
+		return        vk::SampleCountFlagBits::e16;
+	}
+	else if (counts & vk::SampleCountFlagBits::e8) {
+		return        vk::SampleCountFlagBits::e8;
+	}
+	else if (counts & vk::SampleCountFlagBits::e4) {
+		return        vk::SampleCountFlagBits::e4;
+	}
+	else if (counts & vk::SampleCountFlagBits::e2) {
+		return        vk::SampleCountFlagBits::e2;
+	}
+	else {
+		return vk::SampleCountFlagBits::e1;
+	}
+}
+
 void VulkanParticleRenderer::createLogicalDevice()
 {
 	QueueFamilyIndices const indices = findQueueFamilies(physicalDevice);
@@ -426,6 +464,7 @@ void VulkanParticleRenderer::createLogicalDevice()
 	
 	vk::PhysicalDeviceFeatures deviceFeatures;
 	deviceFeatures.setGeometryShader(true);
+	deviceFeatures.setSampleRateShading(sampleShadingEnabled);
 
 	vk::DeviceCreateInfo createInfo;
 	createInfo.setQueueCreateInfoCount(static_cast<uint32_t>(queueCreateInfos.size()));
@@ -625,23 +664,19 @@ void VulkanParticleRenderer::createImageViews()
 
 void VulkanParticleRenderer::createRenderPass()
 {
-	vk::AttachmentDescription colorAttachment;
+	vk::AttachmentDescription colorAttachment = {};
 	colorAttachment.setFormat(swapChainImageFormat);
-	colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	colorAttachment.setSamples(msaaSamples);
 	colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
 	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
 	colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
 	colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
 	colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-	colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+	colorAttachment.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-	vk::AttachmentReference colorAttachmentRef;
-	colorAttachmentRef.setAttachment(0);
-	colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-	vk::AttachmentDescription depthAttachment;
+	vk::AttachmentDescription depthAttachment = {};
 	depthAttachment.setFormat(findDepthFormat());
-	depthAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	depthAttachment.setSamples(msaaSamples);
 	depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
 	depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
 	depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
@@ -649,17 +684,36 @@ void VulkanParticleRenderer::createRenderPass()
 	depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
 	depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
+	vk::AttachmentDescription colorAttachmentResolve = {};
+	colorAttachmentResolve.setFormat(swapChainImageFormat);
+	colorAttachmentResolve.setSamples(vk::SampleCountFlagBits::e1);
+	colorAttachmentResolve.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+	colorAttachmentResolve.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachmentResolve.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+	colorAttachmentResolve.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+	colorAttachmentResolve.setInitialLayout(vk::ImageLayout::eUndefined);
+	colorAttachmentResolve.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.setAttachment(0);
+	colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
 	vk::AttachmentReference depthAttachmentRef;
 	depthAttachmentRef.setAttachment(1);
 	depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-	vk::SubpassDescription subpass;
+	vk::AttachmentReference colorAttachmentResolveRef;
+	colorAttachmentResolveRef.setAttachment(2);
+	colorAttachmentResolveRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+	vk::SubpassDescription subpass = {};
 	subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 	subpass.setColorAttachmentCount(1);
 	subpass.setPColorAttachments(&colorAttachmentRef);
 	subpass.setPDepthStencilAttachment(&depthAttachmentRef);
+	subpass.setPResolveAttachments(&colorAttachmentResolveRef);
 
-	std::array<vk::AttachmentDescription, 2> attachements = { colorAttachment , depthAttachment };
+	std::array<vk::AttachmentDescription, 3> attachements = { colorAttachment, depthAttachment, colorAttachmentResolve };
 
 	vk::RenderPassCreateInfo renderPassInfo;
 	renderPassInfo.setAttachmentCount(static_cast<uint32_t>(attachements.size()));
@@ -817,9 +871,9 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	rasterizer.setDepthBiasSlopeFactor(0.0f); // Optional
 
 	vk::PipelineMultisampleStateCreateInfo multisampling;
-	multisampling.setSampleShadingEnable(VK_FALSE);
-	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-	multisampling.setMinSampleShading(1.0f); // Optional
+	multisampling.setSampleShadingEnable(sampleShadingEnabled);
+	multisampling.setRasterizationSamples(msaaSamples);
+	multisampling.setMinSampleShading(smapleShadingMinFactor); // Optional
 	multisampling.setPSampleMask(nullptr); // Optional
 	multisampling.setAlphaToCoverageEnable(VK_FALSE); // Optional
 	multisampling.setAlphaToOneEnable(VK_FALSE); // Optional
@@ -926,8 +980,9 @@ void VulkanParticleRenderer::createFramebuffers()
 	for (auto const& swapImageView : swapChainImageViews)
 	{
 		vk::ImageView attachments[] = {
-			swapImageView.get(),
-			depthImageView.get()
+			colorImageView.get(),
+			depthImageView.get(),
+			swapImageView.get()			
 		};
 
 		vk::FramebufferCreateInfo framebufferInfo;
@@ -953,11 +1008,24 @@ void VulkanParticleRenderer::createCommandPool()
 	commandPool = device->createCommandPoolUnique(poolInfo);
 }
 
+void VulkanParticleRenderer::createColorResources()
+{
+	vk::Format const colorFormat = swapChainImageFormat;
+
+	createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, colorFormat,
+		vk::ImageTiling::eOptimal, 
+		vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+		vk::MemoryPropertyFlagBits::eDeviceLocal, colorImage, colorImageMemory);
+
+	colorImageView = createImageView(colorImage.get(), colorFormat, vk::ImageAspectFlagBits::eColor);
+}
+
 void VulkanParticleRenderer::createDepthResources()
 {
 	vk::Format const depthFormat = findDepthFormat();
 
-	createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, 
+	createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples,
+		depthFormat, 
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment,
 		vk::MemoryPropertyFlagBits::eDeviceLocal, 
 		depthImage, depthImageMemory);
@@ -1000,6 +1068,7 @@ bool VulkanParticleRenderer::hasStencilComponent(vk::Format format)
 }
 
 void VulkanParticleRenderer::createImage(uint32_t const width, uint32_t const height,
+	vk::SampleCountFlagBits const numSample,
 	vk::Format const & format, vk::ImageTiling const & tiling, 
 	vk::ImageUsageFlags const & usage, vk::MemoryPropertyFlags const & properties, 
 	vk::UniqueImage& image, vk::UniqueDeviceMemory& imageMemory)
@@ -1015,7 +1084,7 @@ void VulkanParticleRenderer::createImage(uint32_t const width, uint32_t const he
 	imageInfo.setTiling(tiling);
 	imageInfo.setInitialLayout(vk::ImageLayout::eUndefined);
 	imageInfo.setUsage(usage);
-	imageInfo.setSamples(vk::SampleCountFlagBits::e1);
+	imageInfo.setSamples(numSample);
 	imageInfo.setSharingMode(vk::SharingMode::eExclusive);
 
 	image = device->createImageUnique(imageInfo);
@@ -1423,6 +1492,7 @@ void VulkanParticleRenderer::recreateSwapChain()
 	createImageViews();
 	createRenderPass();
 	//createGraphicsPipeline();
+	createColorResources();
 	createDepthResources();
 	createFramebuffers();
 	//createUniformBuffers();
@@ -1452,6 +1522,9 @@ void VulkanParticleRenderer::cleanupSwapChain()
 	commandBuffers.clear();
 	//uniformBuffers.clear();
 	//uniformBuffersMemory.clear();
+	colorImageView.reset();
+	colorImage.reset();
+	colorImageMemory.reset();
 	depthImageView.reset();
 	depthImage.reset();
 	depthImageMemory.reset();

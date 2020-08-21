@@ -80,6 +80,8 @@ public:
 
 			QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice const& device);
 
+			vk::SampleCountFlagBits getMaxUsableSampleCount();
+
 		void createLogicalDevice();
 
 		bool checkDeviceExtensionSupport(vk::PhysicalDevice const& device);
@@ -128,6 +130,8 @@ public:
 
 		void createCommandPool();
 
+		void createColorResources();
+
 		void createDepthResources();
 
 			vk::Format findDepthFormat();
@@ -137,7 +141,8 @@ public:
 
 			bool hasStencilComponent(vk::Format format);
 
-			void createImage(uint32_t const width, uint32_t const height, vk::Format const & format,
+			void createImage(uint32_t const width, uint32_t const height, vk::SampleCountFlagBits const numSample,
+				vk::Format const & format,
 				vk::ImageTiling const & tiling, vk::ImageUsageFlags const & usage, 
 				vk::MemoryPropertyFlags const & properties,
 				vk::UniqueImage& image, vk::UniqueDeviceMemory & imageMemory);
@@ -383,6 +388,20 @@ public:
 	vk::UniqueDeviceMemory depthImageMemory;
 	vk::UniqueImage depthImage;
 	vk::UniqueImageView depthImageView;
+
+	// MSAA
+	vk::SampleCountFlagBits const msaaSamplesPrefered = vk::SampleCountFlagBits::e16;	// user defined
+	//vk::SampleCountFlagBits const msaaSamplesPrefered = vk::SampleCountFlagBits::e1;	// user defined
+	vk::SampleCountFlagBits msaaSamples = vk::SampleCountFlagBits::e1;			// aktual
+
+	vk::UniqueDeviceMemory colorImageMemory;
+	vk::UniqueImage colorImage;
+	vk::UniqueImageView colorImageView;
+
+	// Sample Shading
+	bool const sampleShadingEnabled = true;
+	float const smapleShadingMinFactor = 1.0f;
+
 
 
 
