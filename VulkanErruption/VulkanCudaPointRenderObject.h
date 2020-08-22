@@ -15,8 +15,8 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/generated/vec3_vert_spv.h"
-#include "shaders/generated/shader_frag_spv.h"
+#include "shaders/generated/vec3_vert.h"
+#include "shaders/generated/shader_frag.h"
 
 
 class VulkanCudaPointRenderObject : public CudaPointRenderObject

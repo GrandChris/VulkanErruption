@@ -10,14 +10,17 @@
 
 #include "VertexCubeShader.h"
 
-#include "shaders/generated/cube_vert_spv.h"
-#include "shaders/generated/cube_specular_geom_spv.h"
-#include "shaders/generated/specular_frag_spv.h"
+#include "shaders/generated/cube_vert.h"
+#include "shaders/generated/cube_specular_geom.h"
+#include "shaders/generated/specular_frag.h"
+
+#include "shaders/generated/cube_geom.h"
+#include "shaders/generated/shader_frag.h"
 
 #include <vulkan/vulkan.hpp>
 
-
-inline auto VertexCubeShader::getVertexAttributeDescriptions()
+template<VertexCubeShaderType shaderType>
+inline auto VertexCubeShader<shaderType>::getVertexAttributeDescriptions()
 {
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 	attributeDescriptions.resize(2);
@@ -34,19 +37,46 @@ inline auto VertexCubeShader::getVertexAttributeDescriptions()
 	return attributeDescriptions;
 }
 
-inline std::vector<char> VertexCubeShader::getVertexShaderCode()
+template<VertexCubeShaderType shaderType>
+inline std::vector<char> VertexCubeShader<shaderType>::getVertexShaderCode()
 {
-	return cube_vert_spv;
+	switch (shaderType) {
+	default:
+	case VertexCubeShaderType::Pong:
+		return cube_vert_spv;
+		break;
+	case VertexCubeShaderType::NoLighting:
+		return cube_vert_spv;
+		break;
+	};
 }
 
-inline std::vector<char> VertexCubeShader::getGeometryShaderCode()
+template<VertexCubeShaderType shaderType>
+inline std::vector<char> VertexCubeShader<shaderType>::getGeometryShaderCode()
 {
-	return cube_specular_geom_spv;
+	switch (shaderType) {
+	default:
+	case VertexCubeShaderType::Pong:
+		return cube_specular_geom_spv;
+		break;
+	case VertexCubeShaderType::NoLighting:
+		return cube_geom_spv;
+		break;
+	};
 }
 
-inline std::vector<char> VertexCubeShader::getFragmentShaderCode()
+template<VertexCubeShaderType shaderType>
+inline std::vector<char> VertexCubeShader<shaderType>::getFragmentShaderCode()
 {
-	return specular_frag_spv;
+	switch (shaderType) {
+	default:
+	case VertexCubeShaderType::Pong:
+		return specular_frag_spv;
+		break;
+	case VertexCubeShaderType::NoLighting:
+		return shader_frag_spv;
+		break;
+	};
 }
 
 

@@ -10,17 +10,17 @@
 
 #include "Array3DShader.h"
 
-#include "shaders/generated/array3D_cube_vert_spv.h"
-#include "shaders/generated/array3D_cube_specular_geom_spv.h"
-#include "shaders/generated/specular_frag_spv.h"
+#include "shaders/generated/array3D_cube_vert.h"
+#include "shaders/generated/array3D_cube_specular_geom.h"
+#include "shaders/generated/specular_frag.h"
 
-#include "shaders/generated/shader_frag_spv.h"
-#include "shaders/generated/array3D_cube_geom_spv.h"
+#include "shaders/generated/shader_frag.h"
+#include "shaders/generated/array3D_cube_geom.h"
 
 
-#include "shaders/generated/array3D_vert_spv.h"
-#include "shaders/generated/shader_vert_spv.h"
-#include "shaders/generated/shader_frag_spv.h"
+#include "shaders/generated/array3D_vert.h"
+#include "shaders/generated/shader_vert.h"
+#include "shaders/generated/shader_frag.h"
 
 
 

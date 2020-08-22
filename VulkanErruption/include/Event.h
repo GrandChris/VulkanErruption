@@ -17,8 +17,8 @@ class Event
 public:
 	void add(std::function<TFunc> const func);
 
-	template<typename TArg>
-	void operator()(TArg const& arg) const;
+	template<typename ...TArgs>
+	void operator()(TArgs const& ... args) const;
 
 
 private:
@@ -40,11 +40,21 @@ inline void Event<TFunc>::add(std::function<TFunc> const func)
 
 
 template<typename TFunc>
-template<typename TArg>
-inline void Event<TFunc>::operator()(TArg const& arg) const
+template<typename ...TArgs>
+inline void Event<TFunc>::operator()(TArgs const& ... args) const
 {
 	for (auto const& func : mFunctions)
 	{
-		func(arg);
+		func(args...);
 	}
 }
+
+//template<typename TFunc>
+//template<typename TArg>
+//inline void Event<TFunc>::operator()() const
+//{
+//	for (auto const& func : mFunctions)
+//	{
+//		func();
+//	}
+//}

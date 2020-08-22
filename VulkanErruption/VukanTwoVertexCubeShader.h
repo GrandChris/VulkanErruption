@@ -10,9 +10,9 @@
 
 #include "TwoVertexCubeShader.h"
 
-#include "shaders/generated/two_vertex_cube_vert_spv.h"
-#include "shaders/generated/two_vertex_cube_specular_geom_spv.h"
-#include "shaders/generated/specular_frag_spv.h"
+#include "shaders/generated/two_vertex_cube_vert.h"
+#include "shaders/generated/two_vertex_cube_specular_geom.h"
+#include "shaders/generated/specular_frag.h"
 
 #include <vulkan/vulkan.hpp>
 

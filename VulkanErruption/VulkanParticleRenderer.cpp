@@ -1380,6 +1380,7 @@ void VulkanParticleRenderer::mainLoop()
 		//drawFrame();
 
 		drawFrameStart();
+		startNextFame();
 		for (auto const& elem : mObjs)
 		{
 			elem->draw(*this);

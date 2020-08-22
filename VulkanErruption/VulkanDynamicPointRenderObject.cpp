@@ -15,18 +15,35 @@
 
 
 // needs explicit instantiation for every used shader
-template DynamicPointRenderObject<VertexCubeShader>::uPtr DynamicPointRenderObject<VertexCubeShader>::createVulkan();
+
+// Vertex Cube Shader
+template DynamicPointRenderObject<VertexCubeShader<VertexCubeShaderType::Pong>>::uPtr 
+		 DynamicPointRenderObject<VertexCubeShader<VertexCubeShaderType::Pong>>::createVulkan();
+
+template DynamicPointRenderObject<VertexCubeShader<VertexCubeShaderType::NoLighting>>::uPtr 
+		 DynamicPointRenderObject<VertexCubeShader<VertexCubeShaderType::NoLighting>>::createVulkan();
+
+// Two Vertex Cube Shader
+template DynamicPointRenderObject<TwoVertexCubeShader>::uPtr 
+		 DynamicPointRenderObject<TwoVertexCubeShader>::createVulkan();
+
+// Array 3D Shader
+template DynamicPointRenderObject<Array3DShader<eShader::Pong>>::uPtr    
+		 DynamicPointRenderObject<Array3DShader<eShader::Pong>>::createVulkan();
+
+template DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::uPtr 
+		 DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::createVulkan();
+
+template DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::uPtr 
+		 DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::createVulkan();
+
+template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr  
+		 DynamicPointRenderObject<Array3DShader<eShader::Points>>::createVulkan();
 
 
-template DynamicPointRenderObject<TwoVertexCubeShader>::uPtr DynamicPointRenderObject<TwoVertexCubeShader>::createVulkan();
-
-
-template DynamicPointRenderObject<Array3DShader<eShader::Pong>>::uPtr    DynamicPointRenderObject<Array3DShader<eShader::Pong>>::createVulkan();
-template DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::uPtr DynamicPointRenderObject<Array3DShader<eShader::Gouraud>>::createVulkan();
-template DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::uPtr DynamicPointRenderObject<Array3DShader<eShader::Diffuse>>::createVulkan();
-template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr  DynamicPointRenderObject<Array3DShader<eShader::Points>>::createVulkan();
-
-template DynamicPointRenderObject<Grid2DShader>::uPtr DynamicPointRenderObject<Grid2DShader>::createVulkan();
+// Grid 2D Shader
+template DynamicPointRenderObject<Grid2DShader<Grid2DShaderType::Diffuse>>::uPtr 
+		 DynamicPointRenderObject<Grid2DShader<Grid2DShaderType::Diffuse>>::createVulkan();
 
 
 
@@ -145,6 +162,10 @@ void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& 
 {
 	auto ubo = DynamicPointRenderObject<TShader>::mUbo;
 	ubo.model = glm::translate(glm::mat4(1.0f), DynamicPointRenderObject<TShader>::mPos);
+
+	if (DynamicPointRenderObject<TShader>::mUboFunc) {
+		DynamicPointRenderObject<TShader>::mUboFunc(ubo);
+	}
 
 	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
 

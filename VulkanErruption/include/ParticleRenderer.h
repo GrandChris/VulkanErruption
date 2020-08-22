@@ -23,6 +23,17 @@
 #include <vector>
 
 
+// Vulkan Coordinate System
+//  z
+//	/\ 
+//   |  __ y
+//   |   /| 
+//   |  /
+//   | /
+//   |_____________> x
+//
+//
+
 
 class ParticleRenderer {
 public:
@@ -30,6 +41,7 @@ public:
 
 	Event<void(Key)> keyPressed;
 	Event<void(Key)> keyReleased;
+	Event<void(void)> startNextFame;
 
 	// D-Tor
 	virtual ~ParticleRenderer() = default;

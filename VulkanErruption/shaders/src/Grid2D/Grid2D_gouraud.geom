@@ -29,10 +29,8 @@ layout(location = 1) out vec3 outBaseColor;
 layout(location = 2) out vec3 outBarycentricCoordinates;
 
 // Base Color
-const vec3 lightColor = vec3(1.0f, 1.0f, 0.7f);
+const vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
 const vec3 baseColor  = vec3(0.0f, 0.0f, 0.0f);
-
-layout (constant_id = 0) const int USE_SPECULAR = 1;
 
 // Specular Lighting
 vec3 ExtractCameraPos_NoScale(const mat4 a_modelView)
@@ -90,24 +88,23 @@ void main()
     const float h4 = A4 / l31 * 2;
 
     // ####### Calculate Lighting #######
-    const float ambientStrength = 0.01;
-    const float diffuseStrength = 0.2;
+    const float ambientStrength = 0.2;
+    const float diffuseStrength = 0.5;
 
-    // const vec3 ligthPos = vec3(0.0f, 10.0f, 10.0f);
-    const vec3 lightDir = normalize(ubo.lightPos - center);
+    const vec3 lightDir = normalize(ubo.lightPos);
 
     const vec3 norm1 = normalize(vnorm1); 
     const vec3 norm2 = normalize(vnorm2); 
     const vec3 norm3 = normalize(vnorm3); 
     const vec3 norm4 = normalize(vnorm4); 
 
-    const vec3 diffuse1 = lightColor * diffuseStrength * max(0,dot(-lightDir, norm1));
-    const vec3 diffuse2 = lightColor * diffuseStrength * max(0,dot(-lightDir, norm2));
-    const vec3 diffuse3 = lightColor * diffuseStrength * max(0,dot(-lightDir, norm3));
-    const vec3 diffuse4 = lightColor * diffuseStrength * max(0,dot(-lightDir, norm4));
+    const vec3 diffuse1 = lightColor * diffuseStrength * max(0,dot(lightDir, norm1));
+    const vec3 diffuse2 = lightColor * diffuseStrength * max(0,dot(lightDir, norm2));
+    const vec3 diffuse3 = lightColor * diffuseStrength * max(0,dot(lightDir, norm3));
+    const vec3 diffuse4 = lightColor * diffuseStrength * max(0,dot(lightDir, norm4));
 
     // ####### Specular Calculate Lighting #######
-    const float specularStrength = 0.1;
+    const float specularStrength = 0.5;
 
     const vec3 viewPos = ExtractCameraPos_NoScale(ubo.view);
 
@@ -118,10 +115,10 @@ void main()
     vec3 reflectDir3 = reflect(lightDir, norm3);  
     vec3 reflectDir4 = reflect(lightDir, norm4);  
 
-    float spec1 = pow(max(dot(-viewDir, reflectDir1), 0.0), 128);
-    float spec2 = pow(max(dot(-viewDir, reflectDir2), 0.0), 128);
-    float spec3 = pow(max(dot(-viewDir, reflectDir3), 0.0), 128);
-    float spec4 = pow(max(dot(-viewDir, reflectDir4), 0.0), 128);
+    float spec1 = pow(max(dot(-viewDir, reflectDir1), 0.0), 32);
+    float spec2 = pow(max(dot(-viewDir, reflectDir2), 0.0), 32);
+    float spec3 = pow(max(dot(-viewDir, reflectDir3), 0.0), 32);
+    float spec4 = pow(max(dot(-viewDir, reflectDir4), 0.0), 32);
 
     const vec3 specular1 = lightColor * specularStrength * spec1;
     const vec3 specular2 = lightColor * specularStrength * spec2;
@@ -130,27 +127,20 @@ void main()
 
     //  ####### Combine Lightings #######
 
-    vec3 base1 =  baseColor + ambientStrength + diffuse1 + specular1;
-    vec3 base2 =  baseColor + ambientStrength + diffuse2 + specular2;
-    vec3 base3 =  baseColor + ambientStrength + diffuse3 + specular3;
-    vec3 base4 =  baseColor + ambientStrength + diffuse4 + specular4;
-
-    if(USE_SPECULAR == 1) {
-        base1 = base1 + specular1;
-        base2 = base2 + specular2;
-        base3 = base3 + specular3;
-        base4 = base4 + specular4;
-    }
+    const vec3 base1 =  baseColor + ambientStrength + diffuse1 + specular1;
+    const vec3 base2 =  baseColor + ambientStrength + diffuse2 + specular2;
+    const vec3 base3 =  baseColor + ambientStrength + diffuse3 + specular3;
+    const vec3 base4 =  baseColor + ambientStrength + diffuse4 + specular4;
 
     // ####### Transform Vertices #######
 
-    const mat4 vp = ubo.proj * ubo.view;
+    const mat4 mvp = ubo.proj * ubo.view * ubo.model;
 
-    const vec4 pos1t = vp * vec4(pos1[0], 1.0f);
-    const vec4 pos2t = vp * vec4(pos2[0], 1.0f);
-    const vec4 pos3t = vp * vec4(pos3[0], 1.0f);
-    const vec4 pos4t = vp * vec4(pos4[0], 1.0f);
-    const vec4 centert = vp * vec4(center, 1.0f);
+    const vec4 pos1t = mvp * vec4(pos1[0], 1.0f);
+    const vec4 pos2t = mvp * vec4(pos2[0], 1.0f);
+    const vec4 pos3t = mvp * vec4(pos3[0], 1.0f);
+    const vec4 pos4t = mvp * vec4(pos4[0], 1.0f);
+    const vec4 centert = mvp * vec4(center, 1.0f);
  
     // ######## Create Triangles #######
 

@@ -11,6 +11,13 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+enum class VertexCubeShaderType
+{
+	Pong,
+	NoLighting
+};
+
+template<VertexCubeShaderType shaderType = VertexCubeShaderType::Pong>
 struct VertexCubeShader
 {
 	struct Vertex

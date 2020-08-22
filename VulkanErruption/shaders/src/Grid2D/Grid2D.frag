@@ -12,4 +12,4 @@ void main()
     const float strength = 1.0f / (1.0f + 131072.0f * barycentricCoordinates.x * barycentricCoordinates.x * barycentricCoordinates.x);
 
     outColor = max(vec4(lineColor, 1.0f) * strength, vec4(baseColor, 1.0f));
-}
+}  

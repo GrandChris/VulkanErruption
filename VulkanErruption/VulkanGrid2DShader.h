@@ -10,14 +10,14 @@
 
 #include "Grid2DShader.h"
 
-#include "shaders/generated/Grid2D_vert_spv.h"
-#include "shaders/generated/Grid2D_geom_spv.h"
-#include "shaders/generated/Grid2D_frag_spv.h"
+#include "shaders/generated/Grid2D_vert.h"
+#include "shaders/generated/Grid2D_geom.h"
+#include "shaders/generated/Grid2D_frag.h"
 
 #include <vulkan/vulkan.hpp>
 
-
-inline auto Grid2DShader::getVertexAttributeDescriptions()
+template<Grid2DShaderType shaderType>
+inline auto Grid2DShader<shaderType>::getVertexAttributeDescriptions()
 {
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 	attributeDescriptions.resize(4);
@@ -44,22 +44,22 @@ inline auto Grid2DShader::getVertexAttributeDescriptions()
 	return attributeDescriptions;
 }
 
-
-inline std::vector<char> Grid2DShader::getVertexShaderCode()
+template<Grid2DShaderType shaderType>
+inline std::vector<char> Grid2DShader<shaderType>::getVertexShaderCode()
 {
 	return Grid2D_vert_spv;
 }
 
-
-inline std::vector<char> Grid2DShader::getGeometryShaderCode()
+template<Grid2DShaderType shaderType>
+inline std::vector<char> Grid2DShader<shaderType>::getGeometryShaderCode()
 {
 	return Grid2D_geom_spv;
 
 	//return std::vector<char>();
 }
 
-
-inline std::vector<char> Grid2DShader::getFragmentShaderCode()
+template<Grid2DShaderType shaderType>
+inline std::vector<char> Grid2DShader<shaderType>::getFragmentShaderCode()
 {
 	return Grid2D_frag_spv;
 }

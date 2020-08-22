@@ -14,8 +14,8 @@
 #include "VulkanParticleRenderer.h"
 
 
-#include "shaders/generated/shader_vert_spv.h"
-#include "shaders/generated/shader_frag_spv.h"
+#include "shaders/generated/shader_vert.h"
+#include "shaders/generated/shader_frag.h"
 
 
 class VulkanStaticPointRenderObject : public StaticPointRenderObject

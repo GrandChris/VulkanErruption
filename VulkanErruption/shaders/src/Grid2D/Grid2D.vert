@@ -6,6 +6,7 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 model;
     mat4 view;
     mat4 proj;
+    vec3 lightPos; 
     vec3 color;
     uvec2 maxIndex;
 } ubo;
@@ -25,24 +26,22 @@ layout(location = 4) out vec3 fragColor;
 
 const float divider = 1.0f / 255.0f;
 
-const int colorSize = 6;
+const int colorSize = 7;
 const int valsPerColor = 255 / (colorSize-1);
 const float valsPerColorInv = 1.0f / valsPerColor;
 const vec3 colors[colorSize] = {
-		{ 1.0f, 1.0f, 1.0f },
 		{ 1.0f, 0.0f, 0.0f },
 		{ 1.0f, 1.0f, 0.0f },
-		//{ 0.0f, 1.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f },
 		{ 0.0f, 1.0f, 1.0f },
 		{ 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 0.0f, 1.0f }
+		{ 1.0f, 0.0f, 1.0f },
+		{ 1.0f, 0.0f, 0.0f }
 	};
 
 vec3 colorGradient(uint val1)
 {
-    uint val2 = val1 * 300;
-    uint val = uint(min(sqrt(val2), 255.0f));
-
+    uint val = val1 % 255;
 
     int index = int(val * valsPerColorInv);
 
@@ -50,6 +49,19 @@ vec3 colorGradient(uint val1)
     float ratioInv = 1.0f - ratio;
 
 	return ratioInv * colors[index] + ratio * colors[index + 1];
+}
+
+vec3 colorGradient2(uint val)
+{
+    const float varR = val * 0.02f;
+    const float varG = val * 0.03f;
+    const float varB = val * 0.05f;
+
+    const float r = (sin(varR) + 1.0f) * 0.5f;
+    const float g = (sin(varG) + 1.0f) * 0.5f;
+    const float b = (sin(varB) + 1.0f) * 0.5f;
+
+    return vec3(r, g, b);
 }
 
 
@@ -62,14 +74,19 @@ void main()
     uint x =  i % maxX;
     uint y =  i / maxX;
 
-    pos1 = vec3(x,   y,   inHeight1);
-    pos2 = vec3(x+1, y,   inHeight2);
-    pos3 = vec3(x  , y+1, inHeight3);
-    pos4 = vec3(x+1, y+1, inHeight4);
+    pos1 = (ubo.model * vec4(x,   y,   inHeight1, 1.0f)).xyz;
+    pos2 = (ubo.model * vec4(x+1, y,   inHeight2, 1.0f)).xyz;
+    pos3 = (ubo.model * vec4(x  , y+1, inHeight3, 1.0f)).xyz;
+    pos4 = (ubo.model * vec4(x+1, y+1, inHeight4, 1.0f)).xyz;
 
     // gl_Position = ubo.proj * ubo.view * ubo.model * vec4(x1, y1, inHeight[0], 1.0);
-    // fragColor = colorGradient(i*i);
-    fragColor = ubo.color;
 
+    if(ubo.color.x + ubo.color.y + ubo.color.z == 0) {
+        fragColor = colorGradient(y);
+    }
+    else{
+        fragColor = ubo.color;
+    }
+    
     // gl_PointSize = 1.0f;
 }

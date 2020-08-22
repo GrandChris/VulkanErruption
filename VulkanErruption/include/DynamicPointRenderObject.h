@@ -28,7 +28,7 @@ public:
 };
 
 
-template<typename TShader = VertexCubeShader>
+template<typename TShader = VertexCubeShader<>>
 class DynamicPointRenderObject : public RenderObject
 {
 public:
@@ -41,8 +41,13 @@ public:
 
 	template<typename TFunc>
 	void setVertices(TFunc & funcObj, size_t const arraySize);
+
 	void setPosition(glm::vec3 const& pos);
+
 	void setUbo(UniformBufferObject const& ubo);
+
+	template<typename TFunc>
+	void setUbofunc(TFunc& funcObj);
 
 
 
@@ -50,6 +55,8 @@ public:
 
 protected:
 	std::function<void(Vertex* begin, Vertex* end)> mVerticesFunc;
+
+	std::function<void(UniformBufferObject & ubo)> mUboFunc;
 
 	size_t mVerticesSize = 0;
 	glm::vec3 mPos;
@@ -65,6 +72,13 @@ inline void DynamicPointRenderObject<TShader>::setVertices(TFunc & funcObj, size
 {
 	mVerticesSize = arraySize;
 	mVerticesFunc = funcObj;
+}
+
+template<typename TShader>
+template<typename TFunc>
+inline void DynamicPointRenderObject<TShader>::setUbofunc(TFunc& funcObj)
+{
+	mUboFunc = funcObj;
 }
 
 template<typename TShader>
