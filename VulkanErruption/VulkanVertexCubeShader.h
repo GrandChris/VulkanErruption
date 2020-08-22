@@ -38,6 +38,31 @@ inline auto VertexCubeShader<shaderType>::getVertexAttributeDescriptions()
 }
 
 template<VertexCubeShaderType shaderType>
+inline auto VertexCubeShader<shaderType>::getSpecializationInfoVertexShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+template<VertexCubeShaderType shaderType>
+inline auto VertexCubeShader<shaderType>::getSpecializationInfoGeometryShader()
+{
+	std::vector<vk::SpecializationMapEntry> specializationMap(1);
+
+	specializationMap[0].setConstantID(0);
+	specializationMap[0].setSize(sizeof(SpecializationInfoGeometryShader().cubeSize));
+	specializationMap[0].setOffset(offsetof(SpecializationInfoGeometryShader, cubeSize));
+
+	return specializationMap;
+}
+
+template<VertexCubeShaderType shaderType>
+inline auto VertexCubeShader<shaderType>::getSpecializationInfoFragmentShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+
+template<VertexCubeShaderType shaderType>
 inline std::vector<char> VertexCubeShader<shaderType>::getVertexShaderCode()
 {
 	switch (shaderType) {

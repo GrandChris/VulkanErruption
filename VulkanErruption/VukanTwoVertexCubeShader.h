@@ -39,6 +39,22 @@ inline auto TwoVertexCubeShader::getVertexAttributeDescriptions()
 	return attributeDescriptions;
 }
 
+inline auto TwoVertexCubeShader::getSpecializationInfoVertexShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+inline auto TwoVertexCubeShader::getSpecializationInfoGeometryShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+inline auto TwoVertexCubeShader::getSpecializationInfoFragmentShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+
 inline std::vector<char> TwoVertexCubeShader::getVertexShaderCode()
 {
 	return two_vertex_cube_vert_spv;

@@ -16,11 +16,10 @@
 
 #include <vulkan/vulkan.hpp>
 
-template<Grid2DShaderType shaderType>
-inline auto Grid2DShader<shaderType>::getVertexAttributeDescriptions()
+inline auto Grid2DShader::getVertexAttributeDescriptions()
 {
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-	attributeDescriptions.resize(4);
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(4);
+
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
 	attributeDescriptions[0].setFormat(vk::Format::eR32Sfloat);
@@ -44,22 +43,39 @@ inline auto Grid2DShader<shaderType>::getVertexAttributeDescriptions()
 	return attributeDescriptions;
 }
 
-template<Grid2DShaderType shaderType>
-inline std::vector<char> Grid2DShader<shaderType>::getVertexShaderCode()
+inline auto Grid2DShader::getSpecializationInfoVertexShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+inline auto Grid2DShader::getSpecializationInfoGeometryShader()
+{
+	std::vector<vk::SpecializationMapEntry> specializationMap(1);
+
+	specializationMap[0].setConstantID(0);
+	specializationMap[0].setSize(sizeof(SpecializationInfoGeometryShader().useSpecularLighting));
+	specializationMap[0].setOffset(offsetof(SpecializationInfoGeometryShader, useSpecularLighting));
+
+	return specializationMap;
+}
+
+inline auto Grid2DShader::getSpecializationInfoFragmentShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+
+inline std::vector<char> Grid2DShader::getVertexShaderCode()
 {
 	return Grid2D_vert_spv;
 }
 
-template<Grid2DShaderType shaderType>
-inline std::vector<char> Grid2DShader<shaderType>::getGeometryShaderCode()
+inline std::vector<char> Grid2DShader::getGeometryShaderCode()
 {
 	return Grid2D_geom_spv;
-
-	//return std::vector<char>();
 }
 
-template<Grid2DShaderType shaderType>
-inline std::vector<char> Grid2DShader<shaderType>::getFragmentShaderCode()
+inline std::vector<char> Grid2DShader::getFragmentShaderCode()
 {
 	return Grid2D_frag_spv;
 }

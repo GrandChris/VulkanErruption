@@ -109,6 +109,7 @@ public:
 			vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 			vk::VertexInputBindingDescription const & bindingDescription,
 			std::vector<vk::VertexInputAttributeDescription>const & attributeDescriptions,
+			vk::SpecializationInfo specializationVertexInfo = {}, vk::SpecializationInfo specializationGeometryInfo = {}, vk::SpecializationInfo specializationFragmentInfo = {},
 			bool const useTriangles = false);
 
 		void createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayout,
@@ -117,6 +118,7 @@ public:
 			vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 			vk::VertexInputBindingDescription const& bindingDescription,
 			std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
+			vk::SpecializationInfo specializationVertexInfo = {}, vk::SpecializationInfo specializationGeometryInfo = {}, vk::SpecializationInfo specializationFragmentInfo = {},
 			bool const useTriangles = false);
 
 

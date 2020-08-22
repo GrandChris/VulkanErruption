@@ -8,6 +8,8 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 proj;
 } ubo;
 
+layout (constant_id = 0) const float CUBE_SIZE = 0.5f;
+
 layout(points) in;
 
 // layout(points, max_vertices=3) out;
@@ -20,21 +22,19 @@ layout(location = 0) out vec3 fragColor;
 
 
 // Vertices
-const float a = 0.5f;
-const vec3 frontTopLeft =     vec3( a, -a,  a);    
-const vec3 frontTopRight =    vec3( a,  a,  a);   
-const vec3 frontBottomLeft =  vec3( a, -a, -a); 
-const vec3 frontBottomRight = vec3( a,  a, -a);     
-
-const vec3 BackTopLeft =      vec3(-a, -a,  a);  
-const vec3 BackTopRight =     vec3(-a,  a,  a);    
-const vec3 BackBottomLeft =   vec3(-a, -a, -a);   
-const vec3 BackBottomRight =  vec3(-a,  a, -a);   
-
-const int facesSize = 6;
-const int vertPerFace = 4;
-const int cubeSize = facesSize * vertPerFace;
-const vec3 cube[cubeSize] = 
+const float a = CUBE_SIZE;
+ vec3 frontTopLeft =     vec3( a, -a,  a);    
+ vec3 frontTopRight =    vec3( a,  a,  a);   
+ vec3 frontBottomLeft =  vec3( a, -a, -a); 
+ vec3 frontBottomRight = vec3( a,  a, -a);     
+ vec3 BackTopLeft =      vec3(-a, -a,  a);  
+ vec3 BackTopRight =     vec3(-a,  a,  a);    
+ vec3 BackBottomLeft =   vec3(-a, -a, -a);   
+ vec3 BackBottomRight =  vec3(-a,  a, -a);   
+ const int facesSize = 6;
+ const int vertPerFace = 4;
+ const int cubeSize = facesSize * vertPerFace;
+ vec3 cube[cubeSize] = 
 {
     frontTopLeft, 
     frontBottomLeft, 

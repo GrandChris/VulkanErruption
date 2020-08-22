@@ -40,6 +40,24 @@ inline auto Array3DShader<shaderType>::getVertexAttributeDescriptions()
 }
 
 template<eShader shaderType>
+inline auto Array3DShader<shaderType>::getSpecializationInfoVertexShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+template<eShader shaderType>
+inline auto Array3DShader<shaderType>::getSpecializationInfoGeometryShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+template<eShader shaderType>
+inline auto Array3DShader<shaderType>::getSpecializationInfoFragmentShader()
+{
+	return std::vector<vk::SpecializationMapEntry>();
+}
+
+template<eShader shaderType>
 inline std::vector<char> Array3DShader<shaderType>::getVertexShaderCode()
 {
 	switch (shaderType) {

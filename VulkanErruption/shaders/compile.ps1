@@ -9,7 +9,7 @@
 $glslc = "C:/VulkanSDK/1.1.126.0/Bin32/glslc.exe"
 
 function Compile-File($Path) {
-    Write-Output $Path
+    
     $filename = Split-Path -Path $Path -Leaf
     $filename = $filename.Replace(".", "_")
 
@@ -21,6 +21,7 @@ function Compile-File($Path) {
 
     if(-Not (Test-Path $h_filename -NewerThan $date1))
     {
+        Write-Output $Path
         & $glslc $Path -O -o $spv_filename
         .\FileToHeader.exe $spv_filename  $h_filename
         if(Test-Path $spv_filename) {
@@ -57,6 +58,5 @@ Compile-File ".\src\VertexCube\cube_specular.geom"
 
 Compile-File ".\src\Grid2D\Grid2D.vert"
 Compile-File ".\src\Grid2D\Grid2D.geom"
-Compile-File ".\src\Grid2D\Grid2D_gouraud.geom"
 Compile-File ".\src\Grid2D\Grid2D.frag"
 

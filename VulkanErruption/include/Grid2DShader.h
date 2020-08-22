@@ -11,13 +11,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-enum class Grid2DShaderType
-{
-	Gouraud,
-	Diffuse
-};
 
-template<Grid2DShaderType shaderType = Grid2DShaderType::Diffuse>
 struct Grid2DShader
 {
 	struct Vertex
@@ -39,7 +33,27 @@ struct Grid2DShader
 		alignas(16) glm::uvec2 maxIndex;
 	};
 
+	struct SpecializationInfoVertexShader
+	{
+
+	};
+
+	struct SpecializationInfoGeometryShader
+	{
+		uint32_t useSpecularLighting = 1;
+	};
+
+	struct SpecializationInfoFragmentShader
+	{ 
+
+	};
+
 	static auto getVertexAttributeDescriptions();
+
+	static auto getSpecializationInfoVertexShader();
+	static auto getSpecializationInfoGeometryShader();
+	static auto getSpecializationInfoFragmentShader();
+
 	static std::vector<char> getVertexShaderCode();
 	static std::vector<char> getGeometryShaderCode();
 	static std::vector<char> getFragmentShaderCode();
@@ -51,8 +65,8 @@ struct Grid2DShader
 
 // ########+++++++ Implementation +++++++#######
 
-template<Grid2DShaderType shaderType>
-inline std::vector<typename Grid2DShader<shaderType>::Vertex> Grid2DShader<shaderType>::convertToVertex(std::vector<float> const & vec, size_t const width)
+
+inline std::vector<Grid2DShader::Vertex> Grid2DShader::convertToVertex(std::vector<float> const & vec, size_t const width)
 {
 	size_t const height = vec.size() / width;
 

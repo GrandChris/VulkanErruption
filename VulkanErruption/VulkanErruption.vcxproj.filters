@@ -98,9 +98,6 @@
     <ClInclude Include="include\Array3DShader.h">
       <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
     </ClInclude>
-    <ClInclude Include="TwoVertexCubeShader.h">
-      <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
-    </ClInclude>
     <ClInclude Include="include\VertexCubeShader.h">
       <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
     </ClInclude>
@@ -135,6 +132,9 @@
       <Filter>Headerdateien\RenderObject\dynamic\shader\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="include\Grid2DShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TwoVertexCubeShader.h">
       <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,9 +7,11 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 view;
     mat4 proj;
     vec3 lightPos; 
-    vec3 color;
+    vec3 color; 
     uvec2 maxIndex;
 } ubo;
+
+layout (constant_id = 0) const int USE_SPECULAR = 1;
 
 layout(points) in;
 
@@ -31,8 +33,6 @@ layout(location = 2) out vec3 outBarycentricCoordinates;
 // Base Color
 const vec3 lightColor = vec3(1.0f, 1.0f, 0.7f);
 const vec3 baseColor  = vec3(0.0f, 0.0f, 0.0f);
-
-layout (constant_id = 0) const int USE_SPECULAR = 1;
 
 // Specular Lighting
 vec3 ExtractCameraPos_NoScale(const mat4 a_modelView)
@@ -130,10 +130,10 @@ void main()
 
     //  ####### Combine Lightings #######
 
-    vec3 base1 =  baseColor + ambientStrength + diffuse1 + specular1;
-    vec3 base2 =  baseColor + ambientStrength + diffuse2 + specular2;
-    vec3 base3 =  baseColor + ambientStrength + diffuse3 + specular3;
-    vec3 base4 =  baseColor + ambientStrength + diffuse4 + specular4;
+    vec3 base1 =  baseColor + ambientStrength + diffuse1;
+    vec3 base2 =  baseColor + ambientStrength + diffuse2;
+    vec3 base3 =  baseColor + ambientStrength + diffuse3;
+    vec3 base4 =  baseColor + ambientStrength + diffuse4;
 
     if(USE_SPECULAR == 1) {
         base1 = base1 + specular1;

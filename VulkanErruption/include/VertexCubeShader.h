@@ -33,7 +33,27 @@ struct VertexCubeShader
 		alignas(16) glm::mat4 proj;
 	};
 
+	struct SpecializationInfoVertexShader
+	{
+
+	};
+
+	struct SpecializationInfoGeometryShader
+	{
+		float cubeSize = 5.0f;
+	};
+
+	struct SpecializationInfoFragmentShader
+	{
+
+	};
+
 	static auto getVertexAttributeDescriptions();
+
+	static auto getSpecializationInfoVertexShader();
+	static auto getSpecializationInfoGeometryShader();
+	static auto getSpecializationInfoFragmentShader();
+
 	static std::vector<char> getVertexShaderCode();
 	static std::vector<char> getGeometryShaderCode();
 	static std::vector<char> getFragmentShaderCode();

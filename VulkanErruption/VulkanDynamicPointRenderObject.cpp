@@ -42,8 +42,8 @@ template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr
 
 
 // Grid 2D Shader
-template DynamicPointRenderObject<Grid2DShader<Grid2DShaderType::Diffuse>>::uPtr 
-		 DynamicPointRenderObject<Grid2DShader<Grid2DShaderType::Diffuse>>::createVulkan();
+template DynamicPointRenderObject<Grid2DShader>::uPtr 
+		 DynamicPointRenderObject<Grid2DShader>::createVulkan();
 
 
 
@@ -114,10 +114,50 @@ void VulkanDynamicPointRenderObject<TShader>::createDescriptorSetLayout(VulkanPa
 
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::createGraphicsPipeline(VulkanParticleRenderer& engine)
-{
+{	
+	// vertex shader specialization info
+	auto const vertexInfoMap = TShader::getSpecializationInfoVertexShader();
+	auto vertexInfoObj = DynamicPointRenderObject<TShader>::mSpecializationInfoVertexShader;
+
+	vk::SpecializationInfo speciaVertexInfo = {};
+	if (!vertexInfoMap.empty())
+	{
+		speciaVertexInfo.setMapEntryCount(static_cast<uint32_t>(vertexInfoMap.size()));
+		speciaVertexInfo.setPMapEntries(vertexInfoMap.data());
+		speciaVertexInfo.setDataSize(sizeof(TShader::SpecializationInfoVertexShader));
+		speciaVertexInfo.setPData(&vertexInfoObj);
+	}
+
+	// geometry shader specialization info
+	auto const geomInfoMap = TShader::getSpecializationInfoGeometryShader();
+	auto geominfoObj = DynamicPointRenderObject<TShader>::mSpecializationInfoGeometryShader;
+
+	vk::SpecializationInfo specialGeometryInfo = {};
+	if (!geomInfoMap.empty())
+	{
+		specialGeometryInfo.setMapEntryCount(static_cast<uint32_t>(geomInfoMap.size()));
+		specialGeometryInfo.setPMapEntries(geomInfoMap.data());
+		specialGeometryInfo.setDataSize(sizeof(TShader::SpecializationInfoGeometryShader));
+		specialGeometryInfo.setPData(&geominfoObj);
+	}
+
+	// fragment shader specialization info
+	auto const fragInfoMap = TShader::getSpecializationInfoFragmentShader();
+	auto fraginfoObj = DynamicPointRenderObject<TShader>::mSpecializationInfoFragmentShader;
+
+	vk::SpecializationInfo SpecialFragmentInfo = {};
+	if (!fragInfoMap.empty())
+	{
+		SpecialFragmentInfo.setMapEntryCount(static_cast<uint32_t>(fragInfoMap.size()));
+		SpecialFragmentInfo.setPMapEntries(fragInfoMap.data());
+		SpecialFragmentInfo.setDataSize(sizeof(TShader::SpecializationInfoFragmentShader));
+		SpecialFragmentInfo.setPData(&fraginfoObj);
+	}
+
 	engine.createGraphicsPipeline(pipelineLayout, graphicsPipeline, 
 		TShader::getVertexShaderCode(), TShader::getGeometryShaderCode(), TShader::getFragmentShaderCode(),
-				descriptorSetLayout, getVertexBindingDescription(), TShader::getVertexAttributeDescriptions());
+				descriptorSetLayout, getVertexBindingDescription(), TShader::getVertexAttributeDescriptions(), 
+		speciaVertexInfo, specialGeometryInfo, SpecialFragmentInfo);
 }
 
 template<typename TShader>

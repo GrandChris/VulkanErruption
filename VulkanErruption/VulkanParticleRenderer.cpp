@@ -759,10 +759,13 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
 	vk::VertexInputBindingDescription const& bindingDescription,
 	std::vector<vk::VertexInputAttributeDescription> const& attributeDescriptions,
+	vk::SpecializationInfo specializationVertexInfo, vk::SpecializationInfo specializationGeometryInfo, vk::SpecializationInfo specializationFragmentInfo,
 	bool const useTriangles)
 {
 	createGraphicsPipeline(pipelineLayout, graphicsPipeline, vertShaderCode, std::vector<char>(), fragShaderCode,
-		descriptorSetLayout, bindingDescription, attributeDescriptions);
+		descriptorSetLayout, bindingDescription, attributeDescriptions, 
+		specializationVertexInfo, specializationGeometryInfo, specializationFragmentInfo,
+		useTriangles);
 }
 
 
@@ -772,6 +775,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vk::UniqueDescriptorSetLayout const & descriptorSetLayout,
 	vk::VertexInputBindingDescription const& bindingDescription,
 	std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
+	vk::SpecializationInfo specializationVertexInfo, vk::SpecializationInfo specializationGeometryInfo, vk::SpecializationInfo specializationFragmentInfo,
 	bool const useTriangles)
 {
 	vk::UniqueShaderModule const vertShaderModule = createShaderModule(vertShaderCode);
@@ -786,6 +790,9 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
 	vertShaderStageInfo.setModule(vertShaderModule.get());
 	vertShaderStageInfo.setPName("main");
+	if (specializationVertexInfo.mapEntryCount > 0) {
+		vertShaderStageInfo.setPSpecializationInfo(&specializationVertexInfo);
+	}
 
 	vk::PipelineShaderStageCreateInfo geomShaderStageInfo;
 	if (!geomShaderCode.empty())
@@ -793,12 +800,18 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 		geomShaderStageInfo.setStage(vk::ShaderStageFlagBits::eGeometry);
 		geomShaderStageInfo.setModule(geomShaderModule.get());
 		geomShaderStageInfo.setPName("main");
+		if (specializationGeometryInfo.mapEntryCount > 0) {
+			geomShaderStageInfo.setPSpecializationInfo(&specializationGeometryInfo);
+		}
 	}
 
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
 	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
 	fragShaderStageInfo.setModule(fragShaderModule.get());
 	fragShaderStageInfo.setPName("main");
+	if (specializationFragmentInfo.mapEntryCount > 0) {
+		fragShaderStageInfo.setPSpecializationInfo(&specializationFragmentInfo);
+	}
 
 	size_t shaderStagesSize = 0;
 	vk::PipelineShaderStageCreateInfo shaderStages[3];

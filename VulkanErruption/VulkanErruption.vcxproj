@@ -184,8 +184,8 @@
     <ClInclude Include="include\RenderObject.h" />
     <ClInclude Include="include\StaticPointRenderObject.h" />
     <ClInclude Include="include\TwoPointMovingRenderObject.h" />
+    <ClInclude Include="include\TwoVertexCubeShader.h" />
     <ClInclude Include="include\VertexCubeShader.h" />
-    <ClInclude Include="TwoVertexCubeShader.h" />
     <ClInclude Include="upGLFWWindow.h" />
     <ClInclude Include="VukanTwoVertexCubeShader.h" />
     <ClInclude Include="VulkanArray3DShader.h" />

@@ -37,6 +37,9 @@ public:
 	using Shader = TShader;
 	using Vertex = typename TShader::Vertex;
 	using UniformBufferObject = typename TShader::UniformBufferObject;
+	using SpecializationInfoVertexShader = typename TShader::SpecializationInfoVertexShader;
+	using SpecializationInfoGeometryShader = typename TShader::SpecializationInfoGeometryShader;
+	using SpecializationInfoFragmentShader = typename TShader::SpecializationInfoFragmentShader;
 
 
 	template<typename TFunc>
@@ -49,6 +52,9 @@ public:
 	template<typename TFunc>
 	void setUbofunc(TFunc& funcObj);
 
+	void setSpecializationInfoVertexShader(SpecializationInfoVertexShader const info);
+	void setSpecializationInfoGeometryShader(SpecializationInfoGeometryShader const info);
+	void setSpecializationInfoFragmentShader(SpecializationInfoFragmentShader const info);
 
 
 	static uPtr createVulkan();
@@ -61,6 +67,9 @@ protected:
 	size_t mVerticesSize = 0;
 	glm::vec3 mPos;
 	UniformBufferObject mUbo;
+	SpecializationInfoVertexShader mSpecializationInfoVertexShader = {};
+	SpecializationInfoGeometryShader mSpecializationInfoGeometryShader = {};
+	SpecializationInfoFragmentShader mSpecializationInfoFragmentShader = {};
 
 };
 
@@ -91,5 +100,24 @@ template<typename TShader>
 inline void DynamicPointRenderObject<TShader>::setUbo(UniformBufferObject const& ubo)
 {
 	mUbo = ubo;
+}
+
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setSpecializationInfoVertexShader(SpecializationInfoVertexShader const info)
+{
+	mSpecializationInfoVertexShader = std::move(info);
+}
+
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setSpecializationInfoGeometryShader(SpecializationInfoGeometryShader const info)
+{
+	mSpecializationInfoGeometryShader = std::move(info);
+}
+
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setSpecializationInfoFragmentShader(SpecializationInfoFragmentShader const info)
+{
+	mSpecializationInfoFragmentShader = std::move(info);
+
 }
 
