@@ -12,6 +12,7 @@
 #include "VulkanArray3DShader.h"
 #include "VukanTwoVertexCubeShader.h"
 #include "VulkanGrid2DShader.h"
+#include "VulkanGrid2DLightingShader.h"
 
 
 // needs explicit instantiation for every used shader
@@ -45,6 +46,9 @@ template DynamicPointRenderObject<Array3DShader<eShader::Points>>::uPtr
 template DynamicPointRenderObject<Grid2DShader>::uPtr 
 		 DynamicPointRenderObject<Grid2DShader>::createVulkan();
 
+template DynamicPointRenderObject<Grid2DLightingShader>::uPtr
+	DynamicPointRenderObject<Grid2DLightingShader>::createVulkan();
+
 
 
 
@@ -67,6 +71,8 @@ void VulkanDynamicPointRenderObject<TShader>::create(VulkanParticleRenderer& eng
 	createDescriptorPool(engine);
 	createDescriptorSets(engine);
 	createCommandBuffer(engine);
+
+	fullVertexBufferUpdateRequired = true;
 }
 
 template<typename TShader>
@@ -193,7 +199,8 @@ void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticle
 		graphicsPipeline,
 		vertexBuffers, 
 		descriptorSets, 
-		DynamicPointRenderObject<TShader>::mVerticesSize);
+		DynamicPointRenderObject<TShader>::mVerticesSize, 
+		DynamicPointRenderObject<TShader>::mName);
 }
 
 
@@ -210,7 +217,8 @@ void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& 
 	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
 
 	engine.updateVertexBuffer<DynamicPointRenderObject<TShader>::Vertex>(vertexBufferMemory, 
-		DynamicPointRenderObject<TShader>::mVerticesFunc, DynamicPointRenderObject<TShader>::mVerticesSize);
+		DynamicPointRenderObject<TShader>::mVerticesFunc, DynamicPointRenderObject<TShader>::mVerticesSize, fullVertexBufferUpdateRequired);
+	fullVertexBufferUpdateRequired = false;
 }
 
 

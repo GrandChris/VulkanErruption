@@ -16,12 +16,26 @@ layout(location = 1) in float inHeight2;
 layout(location = 2) in float inHeight3;
 layout(location = 3) in float inHeight4;
 
+layout(location = 4) in float inLightStrength1;
+layout(location = 5) in float inLightStrength2;
+layout(location = 6) in float inLightStrength3;
+layout(location = 7) in float inLightStrength4;
+
+layout(location = 8) in uint inLightColor;
+
 layout(location = 0) out vec3 pos1;
 layout(location = 1) out vec3 pos2;
 layout(location = 2) out vec3 pos3;
 layout(location = 3) out vec3 pos4;
 
 layout(location = 4) out vec3 fragColor;
+
+layout(location = 5) out float lightStrength1;
+layout(location = 6) out float lightStrength2;
+layout(location = 7) out float lightStrength3;
+layout(location = 8) out float lightStrength4;
+
+layout(location = 9) out vec4 ligthColor;
 
 
 const float divider = 1.0f / 255.0f;
@@ -87,6 +101,13 @@ void main()
     else{
         fragColor = ubo.color;
     }
+
+    lightStrength1 = inLightStrength1;
+    lightStrength2 = inLightStrength2;
+    lightStrength3 = inLightStrength3;
+    lightStrength4 = inLightStrength4;
+
+    ligthColor = unpackUnorm4x8(inLightColor);
     
     // gl_PointSize = 1.0f;
 }

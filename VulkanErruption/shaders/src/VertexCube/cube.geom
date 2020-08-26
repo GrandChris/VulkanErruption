@@ -67,21 +67,80 @@ const float a = CUBE_SIZE;
     BackBottomRight
 };
 
+// Normals
+const vec3 front =  vec3( 1.0f,  0.0f,  0.0f);    
+const vec3 back =   vec3(-1.0f,  0.0f,  0.0f);    
+const vec3 left =   vec3( 0.0f, -1.0f,  0.0f);    
+const vec3 right =  vec3( 0.0f,  1.0f,  0.0f);    
+const vec3 top =    vec3( 0.0f,  0.0f,  1.0f);    
+const vec3 bottom = vec3( 0.0f,  0.0f, -1.0f);  
+
+const vec3 normals[cubeSize] =
+{
+
+    front,
+    front,
+    front,
+    front,
+
+    back,
+    back,
+    back,
+    back,
+
+    left,
+    left,
+    left,
+    left,
+
+    right,
+    right,
+    right,
+    right,
+
+    top,
+    top,
+    top,
+    top,
+
+    bottom,
+    bottom,
+    bottom,
+    bottom
+};
+
+
+vec3 ExtractCameraPos_NoScale(const mat4 a_modelView)
+{
+  mat3 rotMat = mat3(a_modelView);
+  vec3 d = vec3(a_modelView[3]);
+
+  vec3 retVec = -d * rotMat;
+  return retVec;
+}
+
 void main()
 {	
+    const vec3 viewPos = ExtractCameraPos_NoScale(ubo.view);
+    const vec3 viewDir = viewPos - gl_in[0].gl_Position.xyz;
+
+
     const mat4 mvp = ubo.proj * ubo.view * ubo.model;
 
     for(int i = 0; i < facesSize; ++i)
     {
-        for(int j = 0; j < vertPerFace; ++j)
+        if(dot(viewDir, normals[i * vertPerFace]) >= 0)
         {
-            const int index = i * vertPerFace + j;
-            fragColor = color[0];
-            const vec4 pos = gl_in[0].gl_Position + vec4(cube[index], 0.0f);
+            for(int j = 0; j < vertPerFace; ++j)
+            {
+                const int index = i * vertPerFace + j;
+                fragColor = color[0];
+                const vec4 pos = gl_in[0].gl_Position + vec4(cube[index], 0.0f);
 
-            gl_Position = mvp * pos;
-            EmitVertex();
+                gl_Position = mvp * pos;
+                EmitVertex();
+            }
+            EndPrimitive();
         }
-        EndPrimitive();
     }
 }  

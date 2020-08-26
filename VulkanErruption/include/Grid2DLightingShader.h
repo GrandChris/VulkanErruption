@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File: Grid2DShader.h
+// File: Grid2DLightingShader.h
 // Date: 17.08.2020
 // Version: 1
 // Author: Christian Steinbrecher
@@ -12,15 +12,24 @@
 #include <vector>
 
 
-struct Grid2DShader
+struct Grid2DLightingShader
 {
 	struct Vertex
 	{
 		// for every point, it also needs the height of the 3 neighbouring points
-		float height1; //  1------2
-		float height2; //  |      |
-		float height3; //  |      |
-		float height4; //  3------4
+		//  1------2
+		//  |      |
+		//  |      |
+		//  3------4
+		float height1; 
+		float height2; 
+		float height3; 
+		float height4; 
+		float lightStrength1;
+		float lightStrength2;
+		float lightStrength3;
+		float lightStrength4;
+		unsigned int lightColor = glm::packUnorm4x8({ 0.82f, 0.94f, 1.0f, 1.0f });
 	};
 
 	struct UniformBufferObject
@@ -66,11 +75,11 @@ struct Grid2DShader
 // ########+++++++ Implementation +++++++#######
 
 
-inline std::vector<Grid2DShader::Vertex> Grid2DShader::convertToVertex(std::vector<float> const & vec, size_t const sizeX)
+inline std::vector<Grid2DLightingShader::Vertex> Grid2DLightingShader::convertToVertex(std::vector<float> const & vec, size_t const sizeX)
 {
 	size_t const sizeY = vec.size() / (sizeX+1) -1;
 
-	std::vector<Grid2DShader::Vertex> res((sizeX) * (sizeY));
+	std::vector<Grid2DLightingShader::Vertex> res((sizeX) * (sizeY));
 
 	for (size_t y = 0; y < sizeY ; ++y) {
 		for (size_t x = 0; x < sizeX; ++x) {

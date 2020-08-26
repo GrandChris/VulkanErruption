@@ -37,7 +37,7 @@
 class VulkanParticleRenderer : public ParticleRenderer {
 public:
 	// C-Tor
-	VulkanParticleRenderer();
+	VulkanParticleRenderer(bool enableValidationLayer);
 
 	// D-Tor
 	~VulkanParticleRenderer();
@@ -119,7 +119,7 @@ public:
 			vk::VertexInputBindingDescription const& bindingDescription,
 			std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
 			vk::SpecializationInfo specializationVertexInfo = {}, vk::SpecializationInfo specializationGeometryInfo = {}, vk::SpecializationInfo specializationFragmentInfo = {},
-			bool const useTriangles = false);
+			bool const useTriangles = false, bool const alphaBlending = false);
 
 
 
@@ -195,7 +195,8 @@ public:
 			vk::UniquePipeline const& graphicsPipeline,
 			std::vector<vk::UniqueBuffer> const& vertexBuffers,
 			std::vector<vk::DescriptorSet> const& descriptorSets,
-			size_t const verticesCount);
+			size_t const verticesCount,
+			char const* name);
 
 		void createSyncObjects();
 
@@ -221,7 +222,7 @@ public:
 
 			template<typename T, typename TFunc>
 			void updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
-				TFunc & func, size_t const size);
+				TFunc & func, size_t const size, bool const fullVertexBufferUpdateRequired);
 
 	void cleanup();
 
@@ -240,11 +241,11 @@ public:
 	"VK_LAYER_KHRONOS_validation"
 	};
 
-#ifdef NDEBUG
-	const bool enableValidationLayers = false;
-#else
+//#ifdef NDEBUG
 	const bool enableValidationLayers = true;
-#endif
+//#else
+//	const bool enableValidationLayers = true;
+//#endif
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -471,7 +472,7 @@ inline void VulkanParticleRenderer::createVertexBuffers(std::vector<vk::UniqueDe
 	for (size_t i = 0; i < swapChainImages.size(); ++i)
 	{
 		createBuffer(bufferSize, vk::BufferUsageFlagBits::eVertexBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal ,
 			vertexBuffers[i], vertexBufferMemory[i]
 		);
 	}
@@ -483,8 +484,7 @@ inline void VulkanParticleRenderer::updateUniformBuffer(std::vector<vk::UniqueDe
 	T const& uniformBufferObject)
 {
 	assert(!uniformBuffersMemory.empty());
-	assert(device);
-
+	assert(device); 
 	assert(currentImageResultValue.result == vk::Result::eSuccess);
 	uint32_t const imageIndex = currentImageResultValue.value;
 
@@ -542,7 +542,7 @@ inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDev
 
 template<typename T, typename TFunc>
 inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDeviceMemory> const& vertexBufferMemory,
-	TFunc & func, size_t const size)
+	TFunc & func, size_t const size, bool const fullVertexBufferUpdateRequired)
 {
 	assert(!vertexBufferMemory.empty());
 	assert(device);
@@ -560,7 +560,7 @@ inline void VulkanParticleRenderer::updateVertexBuffer(std::vector<vk::UniqueDev
 		auto begin = reinterpret_cast<T*>(data);
 		auto end = reinterpret_cast<T*>(data) + size;
 
-		func(begin, end);
+		func(begin, end,  fullVertexBufferUpdateRequired);
 
 	device->unmapMemory(vertexMem);
 }

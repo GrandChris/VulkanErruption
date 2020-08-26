@@ -27,7 +27,7 @@ layout(location = 5) out vec3 fragBaseColor;
 
 
 // Vertices
-const float a = 0.5f;
+const float a = 0.05f;
 const vec3 frontTopLeft =     vec3( a, -a,  a);    
 const vec3 frontTopRight =    vec3( a,  a,  a);   
 const vec3 frontBottomLeft =  vec3( a, -a, -a); 

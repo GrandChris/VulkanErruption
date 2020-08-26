@@ -56,11 +56,13 @@ public:
 	void setSpecializationInfoGeometryShader(SpecializationInfoGeometryShader const info);
 	void setSpecializationInfoFragmentShader(SpecializationInfoFragmentShader const info);
 
+	void setName(char const* name);
+
 
 	static uPtr createVulkan();
 
 protected:
-	std::function<void(Vertex* begin, Vertex* end)> mVerticesFunc;
+	std::function<void(Vertex* begin, Vertex* end, bool fullRequired)> mVerticesFunc;
 
 	std::function<void(UniformBufferObject & ubo)> mUboFunc;
 
@@ -71,6 +73,7 @@ protected:
 	SpecializationInfoGeometryShader mSpecializationInfoGeometryShader = {};
 	SpecializationInfoFragmentShader mSpecializationInfoFragmentShader = {};
 
+	char const* mName = "DPRO";
 };
 
 // #######+++++++ Implementation +++++++#######
@@ -119,5 +122,11 @@ inline void DynamicPointRenderObject<TShader>::setSpecializationInfoFragmentShad
 {
 	mSpecializationInfoFragmentShader = std::move(info);
 
+}
+
+template<typename TShader>
+inline void DynamicPointRenderObject<TShader>::setName(char const* name)
+{
+	mName = name;
 }
 

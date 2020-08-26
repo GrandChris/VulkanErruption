@@ -60,3 +60,6 @@ Compile-File ".\src\Grid2D\Grid2D.vert"
 Compile-File ".\src\Grid2D\Grid2D.geom"
 Compile-File ".\src\Grid2D\Grid2D.frag"
 
+Compile-File ".\src\Grid2DLighting\Grid2DLighting.vert"
+Compile-File ".\src\Grid2DLighting\Grid2DLighting.geom"
+

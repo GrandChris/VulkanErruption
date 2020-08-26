@@ -48,6 +48,33 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
 	}
 }
 
+
+// trace marker
+
+VKAPI_ATTR void  VKAPI_CALL vkCmdBeginDebugUtilsLabelEXT(
+	VkInstance                  instance,
+	VkCommandBuffer             commandBuffer,
+	const VkDebugUtilsLabelEXT  & MarkerInfo
+)
+{
+	auto func = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkCmdBeginDebugUtilsLabelEXT");
+	if (func != nullptr) {
+		func(commandBuffer, &MarkerInfo);
+	}
+}
+
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndDebugUtilsLabelEXT(
+	VkInstance                  instance,
+	VkCommandBuffer             commandBuffer
+)
+{
+	auto func = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkCmdEndDebugUtilsLabelEXT");
+	if (func != nullptr) {
+		func(commandBuffer);
+	}
+}
+
 // <<---
 
 
@@ -100,13 +127,14 @@ static Key GLFWKeyToKey(int const glfwKey) {
 // <<---
 
 
-ParticleRenderer::uPtr ParticleRenderer::createVulkan()
+ParticleRenderer::uPtr ParticleRenderer::createVulkan(bool enableValidationLayer)
 {
-	return std::make_unique<VulkanParticleRenderer>();
+	return std::make_unique<VulkanParticleRenderer>(enableValidationLayer);
 }
 
 
-VulkanParticleRenderer::VulkanParticleRenderer()
+VulkanParticleRenderer::VulkanParticleRenderer(bool enableValidationLayer)
+	: enableValidationLayers(enableValidationLayer)
 {
 	static std::mutex mtx;
 
@@ -776,7 +804,7 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 	vk::VertexInputBindingDescription const& bindingDescription,
 	std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
 	vk::SpecializationInfo specializationVertexInfo, vk::SpecializationInfo specializationGeometryInfo, vk::SpecializationInfo specializationFragmentInfo,
-	bool const useTriangles)
+	bool const useTriangles, bool const alphaBlending)
 {
 	vk::UniqueShaderModule const vertShaderModule = createShaderModule(vertShaderCode);
 	vk::UniqueShaderModule geomShaderModule;
@@ -899,8 +927,8 @@ void VulkanParticleRenderer::createGraphicsPipeline(vk::UniquePipelineLayout& pi
 		vk::ColorComponentFlagBits::eA
 	);
 
-	constexpr bool alphaBlending = false;
-	if constexpr (!alphaBlending)
+	//constexpr bool alphaBlending = false;
+	if (!alphaBlending)
 	{
 		colorBlendAttachment.setBlendEnable(VK_FALSE);
 		colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne); // Optional
@@ -1346,7 +1374,8 @@ void VulkanParticleRenderer::recordCommands(vk::UniquePipelineLayout const& pipe
 	vk::UniquePipeline const& graphicsPipeline,
 	std::vector<vk::UniqueBuffer> const& vertexBuffers,
 	std::vector<vk::DescriptorSet> const& descriptorSets,
-	size_t const verticesCount)
+	size_t const verticesCount, 
+	char const * name)
 {
 	assert(pipelineLayout);
 	assert(graphicsPipeline);
@@ -1359,6 +1388,12 @@ void VulkanParticleRenderer::recordCommands(vk::UniquePipelineLayout const& pipe
 
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
+		static size_t iMarker = 0;
+		vk::DebugUtilsLabelEXT debugMarkerInfo = {};
+		debugMarkerInfo.setPLabelName(name);
+
+		vkCmdBeginDebugUtilsLabelEXT(instance.get(), commandBuffers[i].get(), debugMarkerInfo);
+
 		commandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline.get());
 
 		commandBuffers[i]->bindVertexBuffers(0, vertexBuffers[i].get(), vk::DeviceSize());
@@ -1366,6 +1401,8 @@ void VulkanParticleRenderer::recordCommands(vk::UniquePipelineLayout const& pipe
 		commandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[i], nullptr);
 
 		commandBuffers[i]->draw(static_cast<uint32_t>(verticesCount), 1, 0, 0);
+
+		vkCmdEndDebugUtilsLabelEXT(instance.get(), commandBuffers[i].get());
 	}
 }
 

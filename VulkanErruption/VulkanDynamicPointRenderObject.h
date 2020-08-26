@@ -68,6 +68,9 @@ private:
 
 	// Descriptor sets
 	std::vector<vk::DescriptorSet> descriptorSets;
+
+
+	bool fullVertexBufferUpdateRequired = false;
 };
 
 

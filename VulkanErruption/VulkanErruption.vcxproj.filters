@@ -137,6 +137,12 @@
     <ClInclude Include="include\TwoVertexCubeShader.h">
       <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
     </ClInclude>
+    <ClInclude Include="VulkanGrid2DLightingShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\shader\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Grid2DLightingShader.h">
+      <Filter>Headerdateien\RenderObject\dynamic\shader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VulkanCudaPointRenderObject.cpp">

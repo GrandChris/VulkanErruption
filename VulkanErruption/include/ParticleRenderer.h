@@ -58,7 +58,7 @@ public:
 	void setView(glm::vec3 const& eye, glm::vec3 const& view = glm::vec3());
 
 	// Gets a Vulkan implementation of this interface
-	static uPtr createVulkan();
+	static uPtr createVulkan(bool enableValidationLayer = true);
 
 protected:
 	std::vector<RenderObject::uPtr> mObjs;
