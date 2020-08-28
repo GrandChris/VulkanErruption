@@ -27,12 +27,12 @@ inline auto VertexCubeShader<shaderType>::getVertexAttributeDescriptions()
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
 	attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
+	attributeDescriptions[0].setOffset(offsetof(VertexBufferElement, pos));
 
 	attributeDescriptions[1].setBinding(0);
 	attributeDescriptions[1].setLocation(1);
 	attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[1].setOffset(offsetof(Vertex, color));
+	attributeDescriptions[1].setOffset(offsetof(VertexBufferElement, color));
 
 	return attributeDescriptions;
 }

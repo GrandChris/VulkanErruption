@@ -34,7 +34,7 @@ inline auto Array3DShader<shaderType>::getVertexAttributeDescriptions()
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
 	attributeDescriptions[0].setFormat(vk::Format::eR8Uint);
-	attributeDescriptions[0].setOffset(offsetof(Vertex, color));
+	attributeDescriptions[0].setOffset(offsetof(VertexBufferElement, color));
 
 	return attributeDescriptions;
 }

@@ -14,13 +14,18 @@
 
 struct Grid2DShader
 {
-	struct Vertex
+	struct VertexBufferElement
 	{
 		// for every point, it also needs the height of the 3 neighbouring points
 		float height1; //  1------2
 		float height2; //  |      |
 		float height3; //  |      |
 		float height4; //  3------4
+	};
+
+	struct StorageBufferElement
+	{
+
 	};
 
 	struct UniformBufferObject
@@ -59,18 +64,18 @@ struct Grid2DShader
 	static std::vector<char> getFragmentShaderCode();
 
 	// converts a single point 2D-Array into 4-point 2D-Array
-	static std::vector<Vertex> convertToVertex(std::vector<float> const & vec, size_t const width);
+	static std::vector<VertexBufferElement> convertToVertex(std::vector<float> const & vec, size_t const width);
 };
 
 
 // ########+++++++ Implementation +++++++#######
 
 
-inline std::vector<Grid2DShader::Vertex> Grid2DShader::convertToVertex(std::vector<float> const & vec, size_t const sizeX)
+inline std::vector<Grid2DShader::VertexBufferElement> Grid2DShader::convertToVertex(std::vector<float> const & vec, size_t const sizeX)
 {
 	size_t const sizeY = vec.size() / (sizeX+1) -1;
 
-	std::vector<Grid2DShader::Vertex> res((sizeX) * (sizeY));
+	std::vector<Grid2DShader::VertexBufferElement> res((sizeX) * (sizeY));
 
 	for (size_t y = 0; y < sizeY ; ++y) {
 		for (size_t x = 0; x < sizeX; ++x) {

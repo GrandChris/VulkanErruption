@@ -22,9 +22,14 @@ enum class eShader
 template<eShader shaderType = eShader::Pong>
 struct Array3DShader
 {
-	struct Vertex
+	struct VertexBufferElement
 	{
 		uint8_t color;
+	};
+
+	struct StorageBufferElement
+	{
+
 	};
 
 	struct UniformBufferObject

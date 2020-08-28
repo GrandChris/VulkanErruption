@@ -101,7 +101,8 @@ public:
 		void createRenderPass();
 
 		void createDescriptorSetLayout(vk::UniqueDescriptorSetLayout& descriptorSetLayout, 
-			vk::ShaderStageFlags const shaderStageFlag = vk::ShaderStageFlagBits::eVertex);
+			vk::ShaderStageFlags const shaderStageFlag = vk::ShaderStageFlagBits::eVertex,
+			bool const useStorageBuffer = false);
 
 		void createGraphicsPipeline(vk::UniquePipelineLayout & pipelineLayout, 
 			vk::UniquePipeline & graphicsPipeline,
@@ -155,13 +156,21 @@ public:
 		template<typename T>
 		void createVertexBuffer(vk::UniqueDeviceMemory & vertexBufferMemory, vk::UniqueBuffer & vertexBuffer,
 			std::vector<T> const& vertices);
+
 		template<typename T>
 		void createVertexBuffer(vk::UniqueDeviceMemory & stagingBufferMemory, vk::UniqueBuffer & stagingBuffer, 
 			vk::UniqueDeviceMemory& vertexBufferMemory, vk::UniqueBuffer& vertexBuffer,
 			std::vector<T> const& vertices);
 		//void createVertexBuffer();
+
+		void createBuffers(std::vector<vk::UniqueDeviceMemory>& bufferMemory,
+			std::vector<vk::UniqueBuffer>& buffers, size_t const bufferSize, vk::BufferUsageFlagBits usageFlags);
+
 		void createVertexBuffers(std::vector<vk::UniqueDeviceMemory>& vertexBufferMemory,
 			std::vector<vk::UniqueBuffer>& vertexBuffers, size_t const vertexBufferSize);
+
+		void createStorageBuffers(std::vector<vk::UniqueDeviceMemory>& storageBufferMemory,
+			std::vector<vk::UniqueBuffer>& storageBuffers, size_t const storageBufferSize);
 			
 			uint32_t findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const & properties);
 
@@ -178,8 +187,8 @@ public:
 
 			void createDescriptorSets(vk::UniqueDescriptorPool& descriptorPool, std::vector<vk::DescriptorSet> & descriptorSets,
 				vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
-				std::vector<vk::UniqueBuffer> const & uniformBuffers,
-				size_t const UniformBufferObjectSize);
+				std::vector<vk::UniqueBuffer> const & uniformBuffers, size_t const UniformBufferObjectSize, 
+				std::vector<vk::UniqueBuffer> const& storageBuffers = std::vector<vk::UniqueBuffer>(), size_t const StorageBufferObjectSize = 0);
 			//void createDescriptorSets();
 
 		void createCommandBuffersBegin();
@@ -458,25 +467,6 @@ inline void VulkanParticleRenderer::createVertexBuffer(
 
 }
 
-
-inline void VulkanParticleRenderer::createVertexBuffers(std::vector<vk::UniqueDeviceMemory>& vertexBufferMemory,
-	std::vector<vk::UniqueBuffer>& vertexBuffers, size_t const vertexBufferSize)
-{
-	assert(!swapChainImages.empty());
-
-	vk::DeviceSize const bufferSize = vertexBufferSize;
-
-	vertexBuffers.resize(swapChainImages.size());
-	vertexBufferMemory.resize(swapChainImages.size());
-
-	for (size_t i = 0; i < swapChainImages.size(); ++i)
-	{
-		createBuffer(bufferSize, vk::BufferUsageFlagBits::eVertexBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal ,
-			vertexBuffers[i], vertexBufferMemory[i]
-		);
-	}
-}
 
 
 template<typename T>

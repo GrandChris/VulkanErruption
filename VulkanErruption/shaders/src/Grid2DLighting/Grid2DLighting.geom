@@ -11,6 +11,17 @@ layout(binding = 0) uniform UniformBufferObject
     uvec2 maxIndex;
 } ubo;
 
+struct StorageBufferElement
+{
+    float height;
+    float lightStrength;
+};
+
+layout(std430, binding = 1) readonly buffer StorageBufferObject
+{
+    StorageBufferElement elems[];
+} sbo;
+
 layout (constant_id = 0) const int USE_SPECULAR = 1;
 
 layout(points) in;

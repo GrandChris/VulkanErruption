@@ -13,11 +13,16 @@
 
 struct TwoVertexCubeShader
 {
-	struct Vertex
+	struct VertexBufferElement
 	{
 		glm::vec3 pos1;
 		glm::vec3 pos2;
 		glm::vec3 color;
+	};
+
+	struct StorageBufferElement
+	{
+
 	};
 
 	struct UniformBufferObject

@@ -36,6 +36,8 @@ private:
 
 	void createVertexBuffer(VulkanParticleRenderer& engine);
 
+	void createStorageBuffer(VulkanParticleRenderer& engine);
+
 	void createUniformBuffer(VulkanParticleRenderer& engine);
 
 	void createDescriptorPool(VulkanParticleRenderer& engine);
@@ -59,6 +61,10 @@ private:
 	std::vector<vk::UniqueDeviceMemory> vertexBufferMemory;
 	std::vector<vk::UniqueBuffer> vertexBuffers;
 
+	// Storage Buffer
+	std::vector<vk::UniqueDeviceMemory> storageBufferMemory;
+	std::vector<vk::UniqueBuffer> storageBuffers;
+
 	// Uniform Buffers
 	std::vector<vk::UniqueDeviceMemory> uniformBuffersMemory;
 	std::vector<vk::UniqueBuffer> uniformBuffers;
@@ -70,7 +76,7 @@ private:
 	std::vector<vk::DescriptorSet> descriptorSets;
 
 
-	bool fullVertexBufferUpdateRequired = false;
+	bool fullBufferUpdateRequired = false;
 };
 
 

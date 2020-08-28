@@ -67,12 +67,13 @@ void VulkanDynamicPointRenderObject<TShader>::create(VulkanParticleRenderer& eng
 	createDescriptorSetLayout(engine);
 	createGraphicsPipeline(engine);
 	createVertexBuffer(engine);
+	createStorageBuffer(engine);
 	createUniformBuffer(engine);
 	createDescriptorPool(engine);
 	createDescriptorSets(engine);
 	createCommandBuffer(engine);
 
-	fullVertexBufferUpdateRequired = true;
+	fullBufferUpdateRequired = true;
 }
 
 template<typename TShader>
@@ -86,8 +87,15 @@ void VulkanDynamicPointRenderObject<TShader>::cleanup(VulkanParticleRenderer& en
 {
 	descriptorSets.clear();
 	descriptorPool.reset();
+
+	// need not be deleted?
 	uniformBuffers.clear();
 	uniformBuffersMemory.clear();
+	storageBuffers.clear();
+	storageBufferMemory.clear();
+	vertexBuffers.clear();
+	vertexBufferMemory.clear();
+
 	graphicsPipeline.reset();
 	pipelineLayout.reset();
 }
@@ -98,7 +106,7 @@ vk::VertexInputBindingDescription VulkanDynamicPointRenderObject<TShader>::getVe
 {
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.setBinding(0);
-	bindingDescription.setStride(sizeof(TShader::Vertex));
+	bindingDescription.setStride(sizeof(TShader::VertexBufferElement));
 	bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
 	return bindingDescription;
@@ -110,11 +118,13 @@ void VulkanDynamicPointRenderObject<TShader>::createDescriptorSetLayout(VulkanPa
 {
 	if (!TShader::getGeometryShaderCode().empty())
 	{
-		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry);
+		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry, 
+			DynamicPointRenderObject<TShader>::mStorageBufferSize > 0);
 	}
 	else
 	{
-		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex);
+		engine.createDescriptorSetLayout(descriptorSetLayout, vk::ShaderStageFlagBits::eVertex, 
+			DynamicPointRenderObject<TShader>::mStorageBufferSize > 0);
 	}
 }
 
@@ -169,9 +179,23 @@ void VulkanDynamicPointRenderObject<TShader>::createGraphicsPipeline(VulkanParti
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::createVertexBuffer(VulkanParticleRenderer& engine)
 {
-	vk::DeviceSize const bufferSize = sizeof(TShader::Vertex) * DynamicPointRenderObject<TShader>::mVerticesSize;
+	if (DynamicPointRenderObject<TShader>::mVertexBufferSize > 0)
+	{
+		vk::DeviceSize const bufferSize = sizeof(TShader::VertexBufferElement) * DynamicPointRenderObject<TShader>::mVertexBufferSize;
 
-	engine.createVertexBuffers(vertexBufferMemory, vertexBuffers, bufferSize);
+		engine.createVertexBuffers(vertexBufferMemory, vertexBuffers, bufferSize);
+	}
+}
+
+template<typename TShader>
+void VulkanDynamicPointRenderObject<TShader>::createStorageBuffer(VulkanParticleRenderer& engine)
+{
+	if (DynamicPointRenderObject<TShader>::mStorageBufferSize > 0)
+	{
+		vk::DeviceSize const bufferSize = sizeof(TShader::StorageBufferElement) * DynamicPointRenderObject<TShader>::mStorageBufferSize;
+
+		engine.createStorageBuffers(storageBufferMemory, storageBuffers, bufferSize);
+	}
 }
 
 template<typename TShader>
@@ -189,7 +213,10 @@ void VulkanDynamicPointRenderObject<TShader>::createDescriptorPool(VulkanParticl
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::createDescriptorSets(VulkanParticleRenderer& engine)
 {
-	engine.createDescriptorSets(descriptorPool, descriptorSets, descriptorSetLayout, uniformBuffers, sizeof(TShader::UniformBufferObject));
+	engine.createDescriptorSets(descriptorPool, descriptorSets, descriptorSetLayout, 
+		uniformBuffers, sizeof(TShader::UniformBufferObject),
+		storageBuffers, sizeof(TShader::StorageBufferElement) * DynamicPointRenderObject<TShader>::mStorageBufferSize
+		);
 }
 
 template<typename TShader>
@@ -199,7 +226,7 @@ void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticle
 		graphicsPipeline,
 		vertexBuffers, 
 		descriptorSets, 
-		DynamicPointRenderObject<TShader>::mVerticesSize, 
+		DynamicPointRenderObject<TShader>::mVertexBufferSize,
 		DynamicPointRenderObject<TShader>::mName);
 }
 
@@ -207,6 +234,7 @@ void VulkanDynamicPointRenderObject<TShader>::createCommandBuffer(VulkanParticle
 template<typename TShader>
 void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& engine)
 {
+	// update uniform buffer
 	auto ubo = DynamicPointRenderObject<TShader>::mUbo;
 	ubo.model = glm::translate(glm::mat4(1.0f), DynamicPointRenderObject<TShader>::mPos);
 
@@ -216,9 +244,19 @@ void VulkanDynamicPointRenderObject<TShader>::drawFrame(VulkanParticleRenderer& 
 
 	engine.updateUniformBuffer(uniformBuffersMemory, ubo);
 
-	engine.updateVertexBuffer<DynamicPointRenderObject<TShader>::Vertex>(vertexBufferMemory, 
-		DynamicPointRenderObject<TShader>::mVerticesFunc, DynamicPointRenderObject<TShader>::mVerticesSize, fullVertexBufferUpdateRequired);
-	fullVertexBufferUpdateRequired = false;
+	// update vertex buffer
+	engine.updateVertexBuffer<DynamicPointRenderObject<TShader>::VertexBufferElement>(vertexBufferMemory, 
+		DynamicPointRenderObject<TShader>::mVerticesFunc, DynamicPointRenderObject<TShader>::mVertexBufferSize, fullBufferUpdateRequired);
+	
+
+	// update storage buffer
+	if (DynamicPointRenderObject<TShader>::mStorageBufferSize > 0)
+	{
+		engine.updateVertexBuffer<DynamicPointRenderObject<TShader>::StorageBufferElement>(storageBufferMemory,
+			DynamicPointRenderObject<TShader>::mSBOFunc, DynamicPointRenderObject<TShader>::mStorageBufferSize, fullBufferUpdateRequired);
+	}
+
+	fullBufferUpdateRequired = false;
 }
 
 

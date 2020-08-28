@@ -35,7 +35,8 @@ public:
 	using uPtr = typename std::unique_ptr<DynamicPointRenderObject>;
 
 	using Shader = TShader;
-	using Vertex = typename TShader::Vertex;
+	using VertexBufferElement = typename TShader::VertexBufferElement;
+	using StorageBufferElement = typename TShader::StorageBufferElement;
 	using UniformBufferObject = typename TShader::UniformBufferObject;
 	using SpecializationInfoVertexShader = typename TShader::SpecializationInfoVertexShader;
 	using SpecializationInfoGeometryShader = typename TShader::SpecializationInfoGeometryShader;
@@ -43,7 +44,10 @@ public:
 
 
 	template<typename TFunc>
-	void setVertices(TFunc & funcObj, size_t const arraySize);
+	void setVertices(size_t const arraySize, TFunc& funcObj);
+
+	template<typename TFunc>
+	void setSbo(size_t const arraySize, TFunc& funcObj);
 
 	void setPosition(glm::vec3 const& pos);
 
@@ -51,6 +55,8 @@ public:
 
 	template<typename TFunc>
 	void setUbofunc(TFunc& funcObj);
+
+
 
 	void setSpecializationInfoVertexShader(SpecializationInfoVertexShader const info);
 	void setSpecializationInfoGeometryShader(SpecializationInfoGeometryShader const info);
@@ -62,11 +68,19 @@ public:
 	static uPtr createVulkan();
 
 protected:
-	std::function<void(Vertex* begin, Vertex* end, bool fullRequired)> mVerticesFunc;
 
+	// Vertex Buffer update function
+	std::function<void(VertexBufferElement* begin, VertexBufferElement* end, bool fullRequired)> mVerticesFunc;
+
+	// Storage Buffer update function
+	std::function<void(StorageBufferElement* begin, StorageBufferElement* end, bool fullRequired)> mSBOFunc;
+
+	// Uniform Buffer update function
 	std::function<void(UniformBufferObject & ubo)> mUboFunc;
 
-	size_t mVerticesSize = 0;
+
+	size_t mVertexBufferSize = 0;
+	size_t mStorageBufferSize = 0;
 	glm::vec3 mPos;
 	UniformBufferObject mUbo;
 	SpecializationInfoVertexShader mSpecializationInfoVertexShader = {};
@@ -80,10 +94,18 @@ protected:
 
 template<typename TShader>
 template<typename TFunc>
-inline void DynamicPointRenderObject<TShader>::setVertices(TFunc & funcObj, size_t const arraySize)
+inline void DynamicPointRenderObject<TShader>::setVertices(size_t const arraySize, TFunc& funcObj)
 {
-	mVerticesSize = arraySize;
+	mVertexBufferSize = arraySize;
 	mVerticesFunc = funcObj;
+}
+
+template<typename TShader>
+template<typename TFunc>
+inline void DynamicPointRenderObject<TShader>::setSbo(size_t const arraySize, TFunc& funcObj)
+{
+	mStorageBufferSize = arraySize;
+	mSBOFunc = funcObj;
 }
 
 template<typename TShader>

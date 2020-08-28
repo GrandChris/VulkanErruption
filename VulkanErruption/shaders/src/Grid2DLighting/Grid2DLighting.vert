@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform UniformBufferObject
+layout(std140, binding = 0) uniform UniformBufferObject
 {
     mat4 model;
     mat4 view;
@@ -11,17 +11,18 @@ layout(binding = 0) uniform UniformBufferObject
     uvec2 maxIndex;
 } ubo;
 
-layout(location = 0) in float inHeight1;
-layout(location = 1) in float inHeight2;
-layout(location = 2) in float inHeight3;
-layout(location = 3) in float inHeight4;
+struct StorageBufferElement
+{
+    float height;
+    float lightStrength;
+};
 
-layout(location = 4) in float inLightStrength1;
-layout(location = 5) in float inLightStrength2;
-layout(location = 6) in float inLightStrength3;
-layout(location = 7) in float inLightStrength4;
+layout(std430, binding = 1) readonly buffer StorageBufferObject
+{
+    StorageBufferElement elems[];
+} sbo;
 
-layout(location = 8) in uint inLightColor;
+layout(location = 0) in uint inLightColor;
 
 layout(location = 0) out vec3 pos1;
 layout(location = 1) out vec3 pos2;
@@ -83,15 +84,41 @@ void main()
 {
     uint i = gl_VertexIndex;
     uint maxX = ubo.maxIndex.x;
-    // uint maxY = ubo.maxIndex.y-1;
+    // uint maxY = ubo.maxIndex.y;
 
-    uint x =  i % maxX;
-    uint y =  i / maxX;
+    uint x =  i % (maxX-1);
+    uint y =  i / (maxX-1);
 
-    pos1 = (ubo.model * vec4(x,   y,   inHeight1, 1.0f)).xyz;
-    pos2 = (ubo.model * vec4(x+1, y,   inHeight2, 1.0f)).xyz;
-    pos3 = (ubo.model * vec4(x  , y+1, inHeight3, 1.0f)).xyz;
-    pos4 = (ubo.model * vec4(x+1, y+1, inHeight4, 1.0f)).xyz;
+    // for every point, it also needs the height of the 3 neighbouring points
+    //  1------2
+    //  |      |
+    //  |      |
+    //  3------4
+
+    const uint x1 = x;
+    const uint x2 = x+1;
+    const uint y1 = y;
+    const uint y2 = y+1;
+
+    const uint index1 = y1 * maxX + x1;
+    const uint index2 = y1 * maxX + x2;
+    const uint index3 = y2 * maxX + x1;
+    const uint index4 = y2 * maxX + x2;
+
+    const float h1 = sbo.elems[index1].height;
+    const float h2 = sbo.elems[index2].height;
+    const float h3 = sbo.elems[index3].height;
+    const float h4 = sbo.elems[index4].height;
+
+    const float light1 = sbo.elems[index1].lightStrength;
+    const float light2 = sbo.elems[index2].lightStrength;
+    const float light3 = sbo.elems[index3].lightStrength;
+    const float light4 = sbo.elems[index4].lightStrength;
+
+    pos1 = (ubo.model * vec4(x1,   y1,  h1, 1.0f)).xyz;
+    pos2 = (ubo.model * vec4(x2,   y1,  h2, 1.0f)).xyz;
+    pos3 = (ubo.model * vec4(x1,   y2,  h3, 1.0f)).xyz;
+    pos4 = (ubo.model * vec4(x2,   y2,  h4, 1.0f)).xyz;
 
     // gl_Position = ubo.proj * ubo.view * ubo.model * vec4(x1, y1, inHeight[0], 1.0);
 
@@ -102,10 +129,10 @@ void main()
         fragColor = ubo.color;
     }
 
-    lightStrength1 = inLightStrength1;
-    lightStrength2 = inLightStrength2;
-    lightStrength3 = inLightStrength3;
-    lightStrength4 = inLightStrength4;
+    lightStrength1 = light1;
+    lightStrength2 = light2;
+    lightStrength3 = light3;
+    lightStrength4 = light4;
 
     ligthColor = unpackUnorm4x8(inLightColor);
     

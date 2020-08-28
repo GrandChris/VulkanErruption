@@ -20,10 +20,15 @@ enum class VertexCubeShaderType
 template<VertexCubeShaderType shaderType = VertexCubeShaderType::Pong>
 struct VertexCubeShader
 {
-	struct Vertex
+	struct VertexBufferElement
 	{
 		glm::vec3 pos;
 		glm::vec3 color;
+	};
+
+	struct StorageBufferElement
+	{
+
 	};
 
 	struct UniformBufferObject

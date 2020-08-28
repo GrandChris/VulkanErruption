@@ -14,24 +14,36 @@
 
 struct Grid2DLightingShader
 {
-	struct Vertex
+	struct VertexBufferElement
 	{
-		// for every point, it also needs the height of the 3 neighbouring points
+		// for every point, is the colour for a quad
 		//  1------2
 		//  |      |
 		//  |      |
 		//  3------4
-		float height1; 
-		float height2; 
-		float height3; 
-		float height4; 
-		float lightStrength1;
-		float lightStrength2;
-		float lightStrength3;
-		float lightStrength4;
 		unsigned int lightColor = glm::packUnorm4x8({ 0.82f, 0.94f, 1.0f, 1.0f });
 	};
 
+
+	// std340:		size		allignment
+	// float		4			4	
+	// vec2			2 * 4		8
+	// vec3			4 * 4		16
+	// vec4			4 * 4		16
+	// float[3]		3 * 4		4
+	struct StorageBufferElement
+	{
+		alignas(4) float height;
+		alignas(4) float lightStrength;
+	};
+
+
+	// std140:		size		allignment
+	// float		4           4
+	// vec2			2 * 4       8
+	// vec3			4 * 4       16
+	// vec4			4 * 4       16
+	// float[3]		3 * 4 * 4   16
 	struct UniformBufferObject
 	{
 		alignas(16) glm::mat4 model;
@@ -41,6 +53,7 @@ struct Grid2DLightingShader
 		alignas(16) glm::vec3 color = glm::vec3(1.0f, 0.0f, 1.0f);
 		alignas(16) glm::uvec2 maxIndex;
 	};
+
 
 	struct SpecializationInfoVertexShader
 	{
@@ -67,36 +80,8 @@ struct Grid2DLightingShader
 	static std::vector<char> getGeometryShaderCode();
 	static std::vector<char> getFragmentShaderCode();
 
-	// converts a single point 2D-Array into 4-point 2D-Array
-	static std::vector<Vertex> convertToVertex(std::vector<float> const & vec, size_t const width);
 };
 
 
-// ########+++++++ Implementation +++++++#######
 
 
-inline std::vector<Grid2DLightingShader::Vertex> Grid2DLightingShader::convertToVertex(std::vector<float> const & vec, size_t const sizeX)
-{
-	size_t const sizeY = vec.size() / (sizeX+1) -1;
-
-	std::vector<Grid2DLightingShader::Vertex> res((sizeX) * (sizeY));
-
-	for (size_t y = 0; y < sizeY ; ++y) {
-		for (size_t x = 0; x < sizeX; ++x) {
-			size_t const i_src = y * sizeX + x;
-			size_t const i_src2 = (y+1) * sizeX + x;
-			size_t const i_res = y * (sizeX -1) + x;
-
-			assert(i_src < vec.size());
-			assert(i_src2 < vec.size());
-			assert(i_res < res.size());
-			
-			res[i_res].height1 = vec[i_src     ];
-			res[i_res].height2 = vec[i_src  + 1];
-			res[i_res].height3 = vec[i_src2    ];
-			res[i_res].height4 = vec[i_src2 + 1];
-		}
-	}
-
-	return res;
-}

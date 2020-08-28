@@ -21,53 +21,12 @@
 
 inline auto Grid2DLightingShader::getVertexAttributeDescriptions()
 {
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(9);
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(1);
 
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
-	attributeDescriptions[0].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[0].setOffset(offsetof(Vertex, height1));
-
-	attributeDescriptions[1].setBinding(0);
-	attributeDescriptions[1].setLocation(1);
-	attributeDescriptions[1].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[1].setOffset(offsetof(Vertex, height2));
-
-	attributeDescriptions[2].setBinding(0);
-	attributeDescriptions[2].setLocation(2);
-	attributeDescriptions[2].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[2].setOffset(offsetof(Vertex, height3));
-
-	attributeDescriptions[3].setBinding(0);
-	attributeDescriptions[3].setLocation(3);
-	attributeDescriptions[3].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[3].setOffset(offsetof(Vertex, height4));
-
-	attributeDescriptions[4].setBinding(0);
-	attributeDescriptions[4].setLocation(4);
-	attributeDescriptions[4].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[4].setOffset(offsetof(Vertex, lightStrength1));
-
-	attributeDescriptions[5].setBinding(0);
-	attributeDescriptions[5].setLocation(5);
-	attributeDescriptions[5].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[5].setOffset(offsetof(Vertex, lightStrength2));
-
-	attributeDescriptions[6].setBinding(0);
-	attributeDescriptions[6].setLocation(6);
-	attributeDescriptions[6].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[6].setOffset(offsetof(Vertex, lightStrength3));
-
-	attributeDescriptions[7].setBinding(0);
-	attributeDescriptions[7].setLocation(7);
-	attributeDescriptions[7].setFormat(vk::Format::eR32Sfloat);
-	attributeDescriptions[7].setOffset(offsetof(Vertex, lightStrength4));
-
-	attributeDescriptions[8].setBinding(0);
-	attributeDescriptions[8].setLocation(8);
-	//attributeDescriptions[8].setFormat(vk::Format::eR32Uint);
-	attributeDescriptions[8].setFormat(vk::Format::eR32Uint);
-	attributeDescriptions[8].setOffset(offsetof(Vertex, lightColor));
+	attributeDescriptions[0].setFormat(vk::Format::eR32Uint);
+	attributeDescriptions[0].setOffset(offsetof(VertexBufferElement, lightColor));
 
 	return attributeDescriptions;
 }

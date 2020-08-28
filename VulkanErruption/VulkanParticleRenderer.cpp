@@ -765,17 +765,28 @@ void VulkanParticleRenderer::createRenderPass()
 }
 
 void VulkanParticleRenderer::createDescriptorSetLayout(vk::UniqueDescriptorSetLayout & descriptorSetLayout, 
-	vk::ShaderStageFlags const shaderStageFlag)
+	vk::ShaderStageFlags const shaderStageFlag, bool const useStorageBuffer)
 {
+	// Uniform Buffer Layout
 	vk::DescriptorSetLayoutBinding uboLayoutBinding[2];
 	uboLayoutBinding[0].setBinding(0);
 	uboLayoutBinding[0].setDescriptorType(vk::DescriptorType::eUniformBuffer);
 	uboLayoutBinding[0].setDescriptorCount(1);
 	uboLayoutBinding[0].setStageFlags(shaderStageFlag);
 	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
+
+	// Storage Buffer Layout
+	uboLayoutBinding[1].setBinding(1);
+	uboLayoutBinding[1].setDescriptorType(vk::DescriptorType::eStorageBuffer);
+	uboLayoutBinding[1].setDescriptorCount(1);	// if it is an array of objects
+	uboLayoutBinding[1].setStageFlags(shaderStageFlag);
+	uboLayoutBinding[1].setPImmutableSamplers(nullptr); // Optional
 	
+	// Create
+	size_t const count = useStorageBuffer ? 2 : 1;
+
 	vk::DescriptorSetLayoutCreateInfo layoutInfo;
-	layoutInfo.setBindingCount(1);
+	layoutInfo.setBindingCount(static_cast<uint32_t>(count));
 	layoutInfo.setPBindings(uboLayoutBinding);
 
 	descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);	
@@ -1227,6 +1238,39 @@ void VulkanParticleRenderer::copyBuffer(vk::Buffer const& srcBuffer, vk::Buffer&
 	graphicsQueue.waitIdle();
 }
 
+
+void VulkanParticleRenderer::createBuffers(std::vector<vk::UniqueDeviceMemory>& bufferMemory,
+	std::vector<vk::UniqueBuffer>& buffers, size_t const bufferSize, vk::BufferUsageFlagBits usageFlags)
+{
+	assert(!swapChainImages.empty());
+
+	vk::DeviceSize const deviceBufferSize = bufferSize;
+
+	buffers.resize(swapChainImages.size());
+	bufferMemory.resize(swapChainImages.size());
+
+	for (size_t i = 0; i < swapChainImages.size(); ++i)
+	{
+		// https://zeux.io/2020/02/27/writing-an-efficient-vulkan-renderer/
+		createBuffer(deviceBufferSize, usageFlags,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal,
+			buffers[i], bufferMemory[i]
+		);
+	}
+}
+
+void VulkanParticleRenderer::createVertexBuffers(std::vector<vk::UniqueDeviceMemory>& vertexBufferMemory,
+	std::vector<vk::UniqueBuffer>& vertexBuffers, size_t const vertexBufferSize)
+{
+	createBuffers(vertexBufferMemory, vertexBuffers, vertexBufferSize, vk::BufferUsageFlagBits::eVertexBuffer);
+}
+
+void VulkanParticleRenderer::createStorageBuffers(std::vector<vk::UniqueDeviceMemory>& storageBufferMemory, 
+	std::vector<vk::UniqueBuffer>& storageBuffers, size_t const storageBufferSize)
+{
+	createBuffers(storageBufferMemory, storageBuffers, storageBufferSize, vk::BufferUsageFlagBits::eStorageBuffer);
+}
+
 void VulkanParticleRenderer::createUniformBuffers(std::vector<vk::UniqueDeviceMemory>& uniformBuffersMemory, 
 	std::vector<vk::UniqueBuffer>& uniformBuffers, size_t const UniformBufferObjectSize)
 {
@@ -1247,12 +1291,15 @@ void VulkanParticleRenderer::createUniformBuffers(std::vector<vk::UniqueDeviceMe
 
 void VulkanParticleRenderer::createDescriptorPool(vk::UniqueDescriptorPool & descriptorPool)
 {
-	vk::DescriptorPoolSize poolSize;
-	poolSize.setDescriptorCount(static_cast<uint32_t>(swapChainImages.size()));
+	std::array<vk::DescriptorPoolSize, 2> poolSize;
+	poolSize[0].setType(vk::DescriptorType::eUniformBuffer);
+	poolSize[0].setDescriptorCount(static_cast<uint32_t>(swapChainImages.size()));
+	poolSize[1].setType(vk::DescriptorType::eStorageBuffer);
+	poolSize[1].setDescriptorCount(static_cast<uint32_t>(swapChainImages.size()));
 
 	vk::DescriptorPoolCreateInfo poolInfo;
-	poolInfo.setPoolSizeCount(1);
-	poolInfo.setPPoolSizes(&poolSize);
+	poolInfo.setPoolSizeCount(static_cast<uint32_t>(poolSize.size()));
+	poolInfo.setPPoolSizes(poolSize.data());
 	poolInfo.setMaxSets(static_cast<uint32_t>(swapChainImages.size()));
 
 	descriptorPool = device->createDescriptorPoolUnique(poolInfo);
@@ -1261,7 +1308,8 @@ void VulkanParticleRenderer::createDescriptorPool(vk::UniqueDescriptorPool & des
 void VulkanParticleRenderer::createDescriptorSets(vk::UniqueDescriptorPool& descriptorPool, 
 	std::vector<vk::DescriptorSet>& descriptorSets,
 	vk::UniqueDescriptorSetLayout const& descriptorSetLayout,
-	std::vector<vk::UniqueBuffer> const& uniformBuffers, size_t const UniformBufferObjectSize)
+	std::vector<vk::UniqueBuffer> const& uniformBuffers, size_t const UniformBufferObjectSize,
+	std::vector<vk::UniqueBuffer> const& storageBuffers, size_t const StorageBufferObjectSize)
 {
 	assert(!uniformBuffers.empty());
 
@@ -1276,22 +1324,51 @@ void VulkanParticleRenderer::createDescriptorSets(vk::UniqueDescriptorPool& desc
 
 	for (size_t i = 0; i < swapChainImages.size(); i++)
 	{
-		vk::DescriptorBufferInfo bufferInfo;
-		bufferInfo.setBuffer(uniformBuffers[i].get());
-		bufferInfo.setOffset(0);
-		bufferInfo.setRange(UniformBufferObjectSize);
+		// Uniform Buffer
+		vk::DescriptorBufferInfo uniformBufferInfo;
+		uniformBufferInfo.setBuffer(uniformBuffers[i].get());
+		uniformBufferInfo.setOffset(0);
+		uniformBufferInfo.setRange(UniformBufferObjectSize);
 
-		vk::WriteDescriptorSet descriptorWrite;
-		descriptorWrite.setDstSet(descriptorSets[i]);
-		descriptorWrite.setDstBinding(0);
-		descriptorWrite.setDstArrayElement(0);
-		descriptorWrite.setDescriptorType(vk::DescriptorType::eUniformBuffer);
-		descriptorWrite.setDescriptorCount(1);
-		descriptorWrite.setPBufferInfo(&bufferInfo);
-		descriptorWrite.setPImageInfo(nullptr); // Optional
-		descriptorWrite.setPTexelBufferView(nullptr); // Optional
+		// Storage Buffer
+		vk::DescriptorBufferInfo storageBufferInfo = {};
+		if (StorageBufferObjectSize > 0)
+		{
+			storageBufferInfo.setBuffer(storageBuffers[i].get());
+			storageBufferInfo.setOffset(0);
+			storageBufferInfo.setRange(StorageBufferObjectSize);
+		}
+		
+		vk::WriteDescriptorSet descriptorWritesUbo = {};
+		descriptorWritesUbo.setDstSet(descriptorSets[i]);
+		descriptorWritesUbo.setDstBinding(0);
+		descriptorWritesUbo.setDstArrayElement(0);
+		descriptorWritesUbo.setDescriptorType(vk::DescriptorType::eUniformBuffer);
+		descriptorWritesUbo.setDescriptorCount(1);
+		descriptorWritesUbo.setPBufferInfo(&uniformBufferInfo);
+		descriptorWritesUbo.setPImageInfo(nullptr); // Optional
+		descriptorWritesUbo.setPTexelBufferView(nullptr); // Optional
 
-		device->updateDescriptorSets(descriptorWrite, nullptr);
+		vk::WriteDescriptorSet descriptorWritesSbo = {};
+		descriptorWritesSbo.setDstSet(descriptorSets[i]);
+		descriptorWritesSbo.setDstBinding(1);
+		descriptorWritesSbo.setDstArrayElement(0);
+		descriptorWritesSbo.setDescriptorType(vk::DescriptorType::eStorageBuffer);
+		descriptorWritesSbo.setDescriptorCount(1);
+		descriptorWritesSbo.setPBufferInfo(&storageBufferInfo);
+		descriptorWritesSbo.setPImageInfo(nullptr); // Optional
+		descriptorWritesSbo.setPTexelBufferView(nullptr); // Optional
+
+		if (StorageBufferObjectSize > 0)
+		{	
+			std::array<vk::WriteDescriptorSet, 2> descriptorWrites = { descriptorWritesUbo , descriptorWritesSbo };
+			device->updateDescriptorSets(descriptorWrites, nullptr);
+		}
+		else
+		{	// Storage Buffer is not used
+			std::array<vk::WriteDescriptorSet, 1> descriptorWrites = { descriptorWritesUbo };
+			device->updateDescriptorSets(descriptorWrites, nullptr);
+		}
 	}
 }
 
