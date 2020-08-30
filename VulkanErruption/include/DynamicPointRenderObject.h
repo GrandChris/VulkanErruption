@@ -19,15 +19,6 @@
 #include <functional>
 
 
-
-template<typename T>
-class TestInstantiation
-{
-public:
-	void doStuff();
-};
-
-
 template<typename TShader = VertexCubeShader<>>
 class DynamicPointRenderObject : public RenderObject
 {
@@ -44,18 +35,18 @@ public:
 
 
 	template<typename TFunc>
-	void setVertices(size_t const arraySize, TFunc& funcObj);
+	void setVertexFunc(size_t const arraySize, TFunc& funcObj);
 
 	template<typename TFunc>
-	void setSbo(size_t const arraySize, TFunc& funcObj);
-
-	void setPosition(glm::vec3 const& pos);
-
-	void setUbo(UniformBufferObject const& ubo);
+	void setSboFunc(size_t const arraySize, TFunc& funcObj);
 
 	template<typename TFunc>
 	void setUbofunc(TFunc& funcObj);
 
+
+	void setPosition(glm::vec3 const& pos);
+
+	void setUbo(UniformBufferObject const& ubo);
 
 
 	void setSpecializationInfoVertexShader(SpecializationInfoVertexShader const info);
@@ -94,7 +85,7 @@ protected:
 
 template<typename TShader>
 template<typename TFunc>
-inline void DynamicPointRenderObject<TShader>::setVertices(size_t const arraySize, TFunc& funcObj)
+inline void DynamicPointRenderObject<TShader>::setVertexFunc(size_t const arraySize, TFunc& funcObj)
 {
 	mVertexBufferSize = arraySize;
 	mVerticesFunc = funcObj;
@@ -102,7 +93,7 @@ inline void DynamicPointRenderObject<TShader>::setVertices(size_t const arraySiz
 
 template<typename TShader>
 template<typename TFunc>
-inline void DynamicPointRenderObject<TShader>::setSbo(size_t const arraySize, TFunc& funcObj)
+inline void DynamicPointRenderObject<TShader>::setSboFunc(size_t const arraySize, TFunc& funcObj)
 {
 	mStorageBufferSize = arraySize;
 	mSBOFunc = funcObj;
