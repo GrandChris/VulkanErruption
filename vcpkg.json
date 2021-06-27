@@ -5,7 +5,8 @@
       "glm",
       "glfw3",
       "vulkan",
-      "vulkan-hpp"
+      "vulkan-hpp",
+      "gtest"
     ]
   }
 

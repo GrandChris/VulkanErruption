@@ -5,17 +5,17 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "clang++ - Build and debug active file",
+        "name": "g++ - Build and debug active file",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/build/app/Debug/app.exe",
+        "program": "${workspaceFolder}/build/source/event/tests/Debug/event_tests.exe",
         "args": [],
-        "stopAtEntry": true,
+        "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
         "environment": [],
         "externalConsole": false,
-        "MIMode": "lldb",
-        "miDebuggerPath": "lldb"
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb"
       }
     ]
   }

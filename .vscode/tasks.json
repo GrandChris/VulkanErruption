@@ -74,18 +74,13 @@
             "dependsOn": "Build Debug"
         },
         {
-            "label": "Test Emscripten",
+            "label": "vcpkg install",
             "type": "shell",
-            "command": "time",
+            "command": "PowerShell",
             "args": [
-                "./scripts/test_emcc.sh"
+                "./scripts/vcpkg_install.ps1"
             ],
-            "problemMatcher": [],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            },
-            "dependsOn": "Build Emscirpten Debug"
+            "problemMatcher": []
         }
     ]
 }

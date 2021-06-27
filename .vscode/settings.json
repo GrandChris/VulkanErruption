@@ -1,0 +1,27 @@
+{
+    "files.associations": {
+        "memory": "cpp",
+        "utility": "cpp",
+        "atomic": "cpp",
+        "optional": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "stop_token": "cpp",
+        "system_error": "cpp",
+        "functional": "cpp",
+        "concepts": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "bit": "cpp",
+        "*.tcc": "cpp",
+        "set": "cpp",
+        "random": "cpp",
+        "fstream": "cpp",
+        "limits": "cpp",
+        "mutex": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp",
+        "tuple": "cpp"
+    }
+}
