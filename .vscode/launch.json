@@ -5,10 +5,23 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "g++ - Build and debug active file",
+        "name": "g++ - event_tests",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/source/event/tests/Debug/event_tests.exe",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb"
+      },
+      {
+        "name": "g++ - app",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/app/Debug/app.exe",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",

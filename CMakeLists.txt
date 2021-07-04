@@ -29,15 +29,19 @@ add_compile_options(
 add_library(${PROJECT_NAME})
 
 # include directories
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${PROJECT_NAME} PUBLIC
     source
 )
 
 # add source files
 file(GLOB SOURCE_FILES CONFIGURE_DEPENDS
     # "source/vulkan_erruption/details/*.cpp"
-    "source/vulkan_erruption/*.cpp"
-    "source/vulkan_erruption/*/*.cpp"
+    # "source/vulkan_erruption/*.cpp"
+    # "source/vulkan_erruption/*/*.cpp"
+    # "source/vulkan_erruption/shader_object/dynamic_point/*.cpp"
+    "source/vulkan_erruption/render_engine/*.cpp"
+    "source/vulkan_erruption/shader/vertex_cube_shader/*.cpp"
+    "source/vulkan_erruption/object/dynamic_point_object/*.cpp"
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})
@@ -52,36 +56,49 @@ include_directories(vcpkg_installed/x64-mingw-static/include)
 link_directories(vcpkg_installed/x64-mingw-static/lib)
 link_directories(vcpkg_installed/x64-mingw-static/lib/manual-link)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw3)
 
 
 # add vulkan
 find_package(Vulkan REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
+
+target_precompile_headers(${PROJECT_NAME} PUBLIC <vulkan/vulkan.hpp>)
 
 
 # Vulkan::glslc
 set(FILE_TO_HEADER ${CMAKE_SOURCE_DIR}/shaders/FileToHeader.exe)
 
 file(GLOB SHADER_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/shaders/source/*"
+    "${CMAKE_SOURCE_DIR}/shaders/source/*.vert"
+    "${CMAKE_SOURCE_DIR}/shaders/source/*.frag"
+    "${CMAKE_SOURCE_DIR}/shaders/source/*.geom"
+
+    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.vert"
+    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.frag"
+    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.geom"
+
 )
 
 foreach(SHADER_SOURCE ${SHADER_SOURCES})
     get_filename_component(file_c ${SHADER_SOURCE} NAME)
     # set(SHADER_SOURCE ${CMAKE_SOURCE_DIR}/shaders/source/shader.frag)${file_c}
-    set(SHADER_SPV ${CMAKE_BINARY_DIR}/shaders/generated/${file_c}.spv)
-    set(SHADER_HEADER ${CMAKE_BINARY_DIR}/shaders/generated/${file_c}.h)
+    set(SHADER_SPV ${CMAKE_BINARY_DIR}/generated/shaders/${file_c}.spv)
+    set(SHADER_HEADER ${CMAKE_BINARY_DIR}/generated/shaders/${file_c}.h)
     add_custom_command(
         OUTPUT ${SHADER_HEADER}
         DEPENDS ${SHADER_SOURCE}
         COMMAND Vulkan::glslc ${SHADER_SOURCE} -O -o ${SHADER_SPV}
         COMMAND ${FILE_TO_HEADER} ${SHADER_SPV} ${SHADER_HEADER}
     )
+    target_sources(${PROJECT_NAME} PRIVATE ${SHADER_HEADER})
 endforeach()
 
+target_include_directories(${PROJECT_NAME} PRIVATE  
+    ${CMAKE_BINARY_DIR}/generated/
+)
 
-target_sources(${PROJECT_NAME} PRIVATE ${SHADER_HEADER})
+
 
 
 
