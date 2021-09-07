@@ -37,6 +37,37 @@ public:
 	Event<void(Key)> keyReleased;
 	Event<void(void)> startOfNextFrame;
 
+
+	vk::Device & getDevice() override{
+		return device.get();
+	}
+
+	size_t getSwapChainSize() const override{
+		return swapChainImages.size();
+	}
+
+	vk::Extent2D getSwapChainExtent() const override {
+		return swapChainExtent;
+	}
+
+	// void createBuffer(vk::DeviceSize const size, vk::BufferUsageFlags const usage, 
+	// 	vk::MemoryPropertyFlags const properties, vk::UniqueBuffer & buffer, 
+	// 	vk::UniqueDeviceMemory & bufferMemory) override;
+
+	// vk::UniqueShaderModule createShaderModule(std::vector<char> const & code) override;
+
+	vk::SampleCountFlagBits getMaxMsaaSamples() const override {
+		return msaaSamples;
+	}
+
+	vk::RenderPass const & getRenderPass() const override {
+		return renderPass.get();
+	}
+
+	std::vector<vk::UniqueCommandBuffer> & getCommandBuffers() override {
+		return commandBuffers;
+	}
+
 	// C-Tor
 	RenderEngine(bool enableValidationLayer = true);
 
@@ -62,7 +93,7 @@ private:
 	std::vector<std::reference_wrapper<ShaderObject>> mObjs;
 
 	void setup(ShaderObject & obj);
-	void draw(ShaderObject & obj);
+	void draw(ShaderObject & obj, size_t const imageIndex);
 	void cleanup(ShaderObject & obj);
 
 	struct QueueFamilyIndices;
@@ -139,7 +170,7 @@ private:
 
 		//void createGraphicsPipeline();
 
-			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code);
+			vk::UniqueShaderModule createShaderModule(std::vector<char> const & code) override;
 
 		void createFramebuffers();
 
@@ -191,7 +222,7 @@ private:
 			uint32_t findMemoryType(uint32_t const typeFilter, vk::MemoryPropertyFlags const & properties);
 
 			void createBuffer(vk::DeviceSize const size, vk::BufferUsageFlags const usage,
-				vk::MemoryPropertyFlags const properties, vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory);
+				vk::MemoryPropertyFlags const properties, vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory) override;
 
 			void copyBuffer(vk::Buffer const & srcBuffer, vk::Buffer & dstBuffer, vk::DeviceSize size);
 

@@ -165,9 +165,9 @@ void RenderEngine::setup(ShaderObject & obj)
 	obj.setup(*this);
 }
 
-void RenderEngine::draw(ShaderObject & obj)
+void RenderEngine::draw(ShaderObject & obj, size_t const imageIndex)
 {
-	obj.draw(*this);
+	obj.draw(*this, imageIndex);
 }
 
 void RenderEngine::cleanup(ShaderObject & obj)
@@ -922,8 +922,8 @@ void RenderEngine::createGraphicsPipeline(vk::UniquePipelineLayout& pipelineLayo
 	rasterizer.setRasterizerDiscardEnable(VK_FALSE);
 	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 	rasterizer.setLineWidth(1.0f);
-	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-	//rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
+	// rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
 	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
 	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
@@ -1519,9 +1519,13 @@ void RenderEngine::mainLoop()
 
 		drawFrameStart();
 		startOfNextFrame();
+
+		assert(currentImageResultValue.result == vk::Result::eSuccess);
+		uint32_t const imageIndex = currentImageResultValue.value;
+
 		for (auto const& elem : mObjs)
 		{
-			elem.get().draw(*this);
+			elem.get().draw(*this, imageIndex);
 		}
 		drawFrameEnd();
 

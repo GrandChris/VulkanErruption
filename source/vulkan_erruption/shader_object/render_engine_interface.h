@@ -13,6 +13,25 @@
 class RenderEngineInterface
 {
 public:
+
+	virtual vk::Device & getDevice() = 0;
+
+	virtual size_t getSwapChainSize() const = 0;
+
+	virtual vk::Extent2D getSwapChainExtent() const = 0;
+
+	virtual void createBuffer(vk::DeviceSize const size, 
+		vk::BufferUsageFlags const usage, vk::MemoryPropertyFlags const properties, 
+		vk::UniqueBuffer & buffer, vk::UniqueDeviceMemory & bufferMemory) = 0;
+
+	virtual vk::UniqueShaderModule createShaderModule(std::vector<char> const & code) = 0;
+
+	virtual vk::SampleCountFlagBits getMaxMsaaSamples() const = 0;
+
+	virtual vk::RenderPass const & getRenderPass() const = 0;
+
+	virtual std::vector<vk::UniqueCommandBuffer> & getCommandBuffers() = 0;
+
  
 	virtual void createDescriptorSetLayout(vk::UniqueDescriptorSetLayout& descriptorSetLayout, 
 			vk::ShaderStageFlags const shaderStageFlag = vk::ShaderStageFlagBits::eVertex,

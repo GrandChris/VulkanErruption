@@ -40,8 +40,10 @@ file(GLOB SOURCE_FILES CONFIGURE_DEPENDS
     # "source/vulkan_erruption/*/*.cpp"
     # "source/vulkan_erruption/shader_object/dynamic_point/*.cpp"
     "source/vulkan_erruption/render_engine/*.cpp"
+    "source/vulkan_erruption/shader/*.cpp"
     "source/vulkan_erruption/shader/vertex_cube_shader/*.cpp"
     "source/vulkan_erruption/object/dynamic_point_object/*.cpp"
+    "source/vulkan_erruption/object/simple_object/*.cpp"
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})

@@ -91,7 +91,7 @@ public:
 private:
     
 	void setup(RenderEngineInterface& engine) override;
-    void draw(RenderEngineInterface& engine) override;
+    void draw(RenderEngineInterface& engine, size_t const imageIndex) override;
     void cleanup(RenderEngineInterface& engine) override;	
 
     DynamicPointObject_NoTemplate more;
@@ -111,7 +111,7 @@ inline void DynamicPointObject<TShader>::setup(RenderEngineInterface& engine)
 }
 
 template<typename TShader>
-inline void DynamicPointObject<TShader>::draw(RenderEngineInterface& engine)
+inline void DynamicPointObject<TShader>::draw(RenderEngineInterface& engine, size_t const imageIndex)
 {
 	// update uniform buffer
 	UniformBufferData uniformBufferData = {};

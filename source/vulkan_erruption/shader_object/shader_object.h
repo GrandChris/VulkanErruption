@@ -19,7 +19,7 @@ class ShaderObject
 {
 public:
     virtual void setup(RenderEngineInterface&) = 0;
-    virtual void draw(RenderEngineInterface&) = 0;
+    virtual void draw(RenderEngineInterface&, size_t const imageIndex) = 0;
     virtual void cleanup(RenderEngineInterface&) = 0;
 };
 
