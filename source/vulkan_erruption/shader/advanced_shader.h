@@ -12,7 +12,7 @@
 #include "vulkan_erruption/object/simple_object/hello_triangle_shader.h"
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object_shader.h"
 
-class SimpleShader : public HelloTriangleShader, public DynamicPointObjectShader
+class AdvancedShader : public DynamicPointObjectShader
 {
 public:
 
@@ -24,9 +24,7 @@ public:
     std::vector<vk::VertexInputAttributeDescription> getVertexAttributeDescriptions() const override;
 	vk::VertexInputBindingDescription getVertexBindingDescription() const override;
 
-	size_t getVertexBufferElementSize() const override;
-
 private:
-	size_t const mVertexBufferElementSize = sizeof(glm::vec3);
+	size_t const mVertexBufferElementSize = sizeof(VertexBufferElement);
 };
 

@@ -26,6 +26,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Public Methods
 
+    Delegate() = default;
+        
     template<typename ...TArgs>
     R operator()(TArgs&&... args) const;
 

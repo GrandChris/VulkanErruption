@@ -28,7 +28,8 @@
         "environment": [],
         "externalConsole": false,
         "MIMode": "gdb",
-        "miDebuggerPath": "gdb"
+        "miDebuggerPath": "gdb",
+        "preLaunchTask": "Build Debug"
       }
     ]
   }
