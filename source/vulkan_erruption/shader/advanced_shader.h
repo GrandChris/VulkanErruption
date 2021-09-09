@@ -16,7 +16,16 @@ class AdvancedShader : public DynamicPointObjectShader
 {
 public:
 
-	using VertexBufferElement = glm::vec3;
+	struct VertexBufferElement {
+		glm::vec3 pos;
+		glm::vec3 color;
+	};
+
+	struct UnformBuffer {
+		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 view;
+		alignas(16) glm::mat4 proj;
+	};
 
 	std::vector<char> getVertexShaderCode() const override;
 	std::vector<char> getFragmentShaderCode() const override;
@@ -24,7 +33,8 @@ public:
     std::vector<vk::VertexInputAttributeDescription> getVertexAttributeDescriptions() const override;
 	vk::VertexInputBindingDescription getVertexBindingDescription() const override;
 
-private:
-	size_t const mVertexBufferElementSize = sizeof(VertexBufferElement);
+	std::vector<vk::DescriptorSetLayoutBinding> getUniformBindingDescription() const override;
+
+	size_t getUniformBufferSize() const override;
 };
 

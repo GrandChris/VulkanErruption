@@ -17,33 +17,60 @@ DynamicPointObject::DynamicPointObject(DynamicPointObjectShader const & shader, 
 
 
 void DynamicPointObject::setup(RenderEngineInterface & engine)
-{
+{   
+    // vertex buffer
     mVertexBuffer.createVertexBuffer(engine, mSize);
+    
+    // uniform buffer
+    mUniformBuffer.createUniformBuffer(engine, mShader.getUniformBufferSize());
+    mDescriptorSetLayout.createDescriptorSetLayout(engine, mShader.getUniformBindingDescription());
+    mDescriptorPool.createDescriptorPool(engine);
+    mDescriptorSets.createDescriptorSets(engine,
+        mDescriptorPool.getDescriptorPool(),
+        mDescriptorSetLayout.getDescriptorSetLayout(),
+        mUniformBuffer.getBuffers(),
+        mShader.getUniformBufferSize());
 
+    // pipeline
     mPipeline.createGraphicsPipeline(engine, 
         mShader.getVertexShaderCode(),
         mShader.getFragmentShaderCode(),
         mShader.getVertexBindingDescription(),
-        mShader.getVertexAttributeDescriptions());
+        mShader.getVertexAttributeDescriptions(),
+        mDescriptorSetLayout.getDescriptorSetLayout());
 
+    // commands
     mCommands.recordCommands(engine,
         mPipeline.getPipelineLayout(),
         mPipeline.getPipeline(),
         mVertexBuffer.getBuffers(),
+        mDescriptorSets.getDescriptorSets(),
         mSize);
 }
 
 void DynamicPointObject::draw(RenderEngineInterface & engine, size_t const imageIndex)
 {
-    Delegate<void(void * const, size_t)> func;
-    func.set<DynamicPointObject::doUpdateVertexBuffer>(*this);
+    Delegate<void(void * const, size_t)> funcVertex;
+    funcVertex.set<DynamicPointObject::doUpdateVertexBuffer>(*this);
 
-    mVertexBuffer.update(engine, imageIndex, func);
+    mVertexBuffer.update(engine, imageIndex, funcVertex);
+
+    Delegate<void(void * const, size_t)> funcUniform;
+    funcUniform.set<DynamicPointObject::doUpdateUniformBuffer>(*this);
+
+    mUniformBuffer.update(engine, imageIndex, funcUniform);
 }
 
 void DynamicPointObject::cleanup(RenderEngineInterface & engine)
 {
     mCommands.clear();
+    
     mPipeline.clear();
+
+    mDescriptorSets.clear();
+    mDescriptorPool.clear();
+    mDescriptorSetLayout.clear();
+    mUniformBuffer.clear();
+
     mVertexBuffer.clear();
 }

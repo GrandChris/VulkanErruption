@@ -7,18 +7,23 @@
 
 #include "advanced_shader.h"
 
-#include "shaders/simple_shader.frag.h"
-#include "shaders/simple_shader.vert.h"
+#include "shaders/advanced_shader.vert.h"
+#include "shaders/advanced_shader.frag.h"
 
 
 std::vector<vk::VertexInputAttributeDescription> AdvancedShader::getVertexAttributeDescriptions() const
 {
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-	attributeDescriptions.resize(1);
+	attributeDescriptions.resize(2);
 	attributeDescriptions[0].setBinding(0);
 	attributeDescriptions[0].setLocation(0);
 	attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
-	attributeDescriptions[0].setOffset(0);
+	attributeDescriptions[0].setOffset(offsetof(VertexBufferElement, pos));
+
+	attributeDescriptions[1].setBinding(0);
+	attributeDescriptions[1].setLocation(1);
+	attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
+	attributeDescriptions[1].setOffset(offsetof(VertexBufferElement, color));
 
 	return attributeDescriptions;
 }
@@ -27,18 +32,38 @@ vk::VertexInputBindingDescription AdvancedShader::getVertexBindingDescription() 
 {
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.setBinding(0);
-	bindingDescription.setStride(mVertexBufferElementSize);
+	bindingDescription.setStride(sizeof(VertexBufferElement));
 	bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
 	return bindingDescription;
 }
 
+std::vector<vk::DescriptorSetLayoutBinding> AdvancedShader::getUniformBindingDescription() const
+{
+	// Uniform Buffer Layout
+	std::vector<vk::DescriptorSetLayoutBinding>  uboLayoutBinding;
+	uboLayoutBinding.resize(1);
+	uboLayoutBinding[0].setBinding(0);
+	uboLayoutBinding[0].setDescriptorType(vk::DescriptorType::eUniformBuffer);
+	uboLayoutBinding[0].setDescriptorCount(1); // if it is an array of objects
+	uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eVertex);
+	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
+
+	return uboLayoutBinding;
+}
+
 std::vector<char> AdvancedShader::getVertexShaderCode() const
 {
-	return simple_shader_vert_spv;
+	return advanced_shader_vert_spv;
 }
 
 std::vector<char> AdvancedShader::getFragmentShaderCode() const
 {
-	return simple_shader_frag_spv;
+	return advanced_shader_frag_spv;
+}
+
+
+size_t AdvancedShader::getUniformBufferSize() const
+{
+	return sizeof(UnformBuffer);
 }

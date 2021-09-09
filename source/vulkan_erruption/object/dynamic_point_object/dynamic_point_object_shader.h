@@ -17,4 +17,7 @@ public:
 
     virtual std::vector<vk::VertexInputAttributeDescription> getVertexAttributeDescriptions() const = 0;
     virtual vk::VertexInputBindingDescription getVertexBindingDescription() const = 0;
+    virtual std::vector<vk::DescriptorSetLayoutBinding> getUniformBindingDescription() const = 0;
+
+    virtual size_t getUniformBufferSize() const = 0;
 };
