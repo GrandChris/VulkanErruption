@@ -7,7 +7,7 @@
 
 #pragma once
 
-// #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.hpp>
 #include <span>
 
 class RenderEngineInterface

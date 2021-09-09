@@ -75,7 +75,8 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
 	vertexInputInfo.setPVertexAttributeDescriptions(attributeDescriptions.data());
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	// inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleStrip);
     // inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
 	inputAssembly.setPrimitiveRestartEnable(VK_FALSE);
 

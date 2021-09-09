@@ -69,8 +69,8 @@ public:
     Event<void(std::span<VertexBufferElement>)> updateVertexBuffer;
     Event<void(UniformBuffer&)> updateUniformBuffer;
 
-    ConcreteShaderObject(size_t size) 
-        : DynamicPointObject(mShader, size * sizeof(VertexBufferElement))
+    ConcreteShaderObject(size_t size, TShader const & shader) 
+        : DynamicPointObject(shader, size * sizeof(VertexBufferElement))
     {
 
     }
@@ -90,6 +90,4 @@ private:
         UniformBuffer * elem = reinterpret_cast<UniformBuffer *>(data);
         updateUniformBuffer(*elem);
     }
-
-    TShader mShader;
 };

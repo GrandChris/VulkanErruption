@@ -7,9 +7,17 @@
 
 #include "advanced_shader.h"
 
-#include "shaders/advanced_shader.vert.h"
-#include "shaders/advanced_shader.frag.h"
+#include "shaders/advanced_shader_none.vert.h"
+#include "shaders/advanced_shader_none.frag.h"
 
+#include "shaders/advanced_shader_diffuse.frag.h"
+#include "shaders/advanced_shader_diffuse.vert.h"
+
+AdvancedShader::AdvancedShader(LightingType light)
+	: mLight(light)
+{
+
+}
 
 std::vector<vk::VertexInputAttributeDescription> AdvancedShader::getVertexAttributeDescriptions() const
 {
@@ -46,20 +54,30 @@ std::vector<vk::DescriptorSetLayoutBinding> AdvancedShader::getUniformBindingDes
 	uboLayoutBinding[0].setBinding(0);
 	uboLayoutBinding[0].setDescriptorType(vk::DescriptorType::eUniformBuffer);
 	uboLayoutBinding[0].setDescriptorCount(1); // if it is an array of objects
-	uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eVertex);
+	uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
 	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
 
 	return uboLayoutBinding;
 }
 
 std::vector<char> AdvancedShader::getVertexShaderCode() const
-{
-	return advanced_shader_vert_spv;
+{	
+	if(mLight == LightingType::Diffuse) {
+		return advanced_shader_diffuse_vert_spv;
+	}
+	else {
+		return advanced_shader_none_vert_spv;
+	}
 }
 
 std::vector<char> AdvancedShader::getFragmentShaderCode() const
 {
-	return advanced_shader_frag_spv;
+	if(mLight == LightingType::Diffuse) {
+		return advanced_shader_diffuse_frag_spv;
+	}
+	else {
+		return advanced_shader_none_frag_spv;
+	}
 }
 
 

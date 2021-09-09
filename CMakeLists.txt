@@ -65,7 +65,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC glfw3)
 find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC <vulkan/vulkan.hpp>)
+# target_precompile_headers(${PROJECT_NAME} PUBLIC <vulkan/vulkan.hpp>)
 
 
 # Vulkan::glslc
