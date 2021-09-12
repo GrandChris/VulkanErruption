@@ -2,6 +2,7 @@
 
 #include "vulkan_erruption/vulkan_erruption.h"
 #include "vulkan_erruption/shader/advanced_shader.h"
+#include "vulkan_erruption/shader/cube_shader.h"
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object.h"
 
 #include <iostream>
@@ -25,7 +26,7 @@
 
 using namespace std;
 
-auto createCube(float const a = 1.0f)
+auto createCube(float const a = 0.5f)
 {
     // Vertices
     const glm::vec3 frontTopLeft =      glm::vec3( a, -a,  a);    
@@ -150,10 +151,38 @@ int main() {
     Cube cub2 = Cube({1.5f, 0.0f, -1.2f}, {0.7f, 0.4f, 0.1f}, view, proj, AdvancedShader::LightingType::Diffuse);
     Cube cub3 = Cube({0.0f, 0.0f, 1.2f}, {0.4f, 0.7f, 0.1f}, view, proj, AdvancedShader::LightingType::Pong);
 
+    // Cube Shader
+    CubeShader::VertexBufferElement cubeShaderVertexData[] = {
+       {{0.0f, 2.0f, 0.0f}, {0.1f, 0.4f, 0.7f}},
+       {{0.0f, 3.0f, 0.0f}, {0.7f, 0.4f, 0.1f}},
+       {{0.0f, 4.0f, 0.0f}, {0.4f, 0.7f, 0.1f}},
+       {{0.0f, 5.0f, 0.0f}, {0.6f, 0.7f, 0.3f}}
+    };
+
+    auto lbdVertexUpdate = [&](std::span<CubeShader::VertexBufferElement> data){
+        assert(std::size(cubeShaderVertexData) == std::size(data));
+        std::copy(std::cbegin(cubeShaderVertexData), std::cend(cubeShaderVertexData), std::begin(data));
+    };
+
+    auto lbdUniformUpdate = [&](CubeShader::UnformBuffer & data){
+        data.model = glm::mat4(1);
+        data.view = view;
+        data.proj = proj;
+        data.lightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
+		data.ambient = 0.2f;
+    };
+
+    CubeShader cubeShader;
+    ConcreteShaderObject<DynamicPointObject, CubeShader> cubeObject(std::size(cubeShaderVertexData), cubeShader);
+    cubeObject.updateVertexBuffer.add(lbdVertexUpdate);
+    cubeObject.updateUniformBuffer.add(lbdUniformUpdate);
+
+
     RenderEngine renderEngine;
 	renderEngine.add(cub1.get());
 	renderEngine.add(cub2.get());
 	renderEngine.add(cub3.get());
+	renderEngine.add(cubeObject);
 
     uint64_t count = 0;
     auto lbdStartOfNextFrame = [&](){

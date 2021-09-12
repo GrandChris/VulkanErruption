@@ -1,25 +1,23 @@
 //
-// @file:   simple_shader.h
+// @file:   cube_shader.h
 // @author: GrandChris
 // @date:   2021-09-07
-// @brief:  Shader for hello triangle
+// @brief:  Shader for drawing cubes
 //
 
-#include "advanced_shader.h"
+#include "cube_shader.h"
 
-#include "shaders/advanced_shader_none.vert.h"
-#include "shaders/advanced_shader_none.frag.h"
+#include "shaders/cube_shader.vert.h"
+#include "shaders/cube_shader.geom.h"
+#include "shaders/cube_shader.frag.h"
 
-#include "shaders/advanced_shader_diffuse.frag.h"
-#include "shaders/advanced_shader_diffuse.vert.h"
-
-AdvancedShader::AdvancedShader(LightingType light)
+CubeShader::CubeShader(LightingType light)
 	: mLight(light)
 {
 
 }
 
-std::vector<vk::VertexInputAttributeDescription> AdvancedShader::getVertexAttributeDescriptions() const
+std::vector<vk::VertexInputAttributeDescription> CubeShader::getVertexAttributeDescriptions() const
 {
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 	attributeDescriptions.resize(2);
@@ -36,7 +34,7 @@ std::vector<vk::VertexInputAttributeDescription> AdvancedShader::getVertexAttrib
 	return attributeDescriptions;
 }
 
-vk::VertexInputBindingDescription AdvancedShader::getVertexBindingDescription() const
+vk::VertexInputBindingDescription CubeShader::getVertexBindingDescription() const
 {
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.setBinding(0);
@@ -46,7 +44,7 @@ vk::VertexInputBindingDescription AdvancedShader::getVertexBindingDescription() 
 	return bindingDescription;
 }
 
-std::vector<vk::DescriptorSetLayoutBinding> AdvancedShader::getUniformBindingDescription() const
+std::vector<vk::DescriptorSetLayoutBinding> CubeShader::getUniformBindingDescription() const
 {
 	// Uniform Buffer Layout
 	std::vector<vk::DescriptorSetLayoutBinding>  uboLayoutBinding;
@@ -54,48 +52,54 @@ std::vector<vk::DescriptorSetLayoutBinding> AdvancedShader::getUniformBindingDes
 	uboLayoutBinding[0].setBinding(0);
 	uboLayoutBinding[0].setDescriptorType(vk::DescriptorType::eUniformBuffer);
 	uboLayoutBinding[0].setDescriptorCount(1); // if it is an array of objects
-	uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+	// uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+	uboLayoutBinding[0].setStageFlags(vk::ShaderStageFlagBits::eGeometry);
 	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
 
 	return uboLayoutBinding;
 }
 
-std::vector<char> AdvancedShader::getVertexShaderCode() const
+std::vector<char> CubeShader::getVertexShaderCode() const
 {	
 	if(mLight == LightingType::Diffuse) {
-		return advanced_shader_diffuse_vert_spv;
+		return  cube_shader_vert_spv;
 	}
 	else {
-		return advanced_shader_none_vert_spv;
+		return cube_shader_vert_spv;
 	}
 }
 
-std::vector<char> AdvancedShader::getGeometryShaderCode() const
+std::vector<char> CubeShader::getGeometryShaderCode() const
 {	
-	return std::vector<char>();
+	if(mLight == LightingType::Diffuse) {
+		return  cube_shader_geom_spv;
+	}
+	else {
+		return cube_shader_geom_spv;
+	}
 }
 
-std::vector<char> AdvancedShader::getFragmentShaderCode() const
+std::vector<char> CubeShader::getFragmentShaderCode() const
 {
 	if(mLight == LightingType::Diffuse) {
-		return advanced_shader_diffuse_frag_spv;
+		return cube_shader_frag_spv;
 	}
 	else {
-		return advanced_shader_none_frag_spv;
+		return cube_shader_frag_spv;
 	}
 }
 
-vk::PrimitiveTopology AdvancedShader::getInputTopology() const
+vk::PrimitiveTopology CubeShader::getInputTopology() const
 {
-	return vk::PrimitiveTopology::eTriangleStrip;
+	return vk::PrimitiveTopology::ePointList;
 }
 
-size_t AdvancedShader::getVertexElementSize() const
+size_t CubeShader::getVertexElementSize() const
 {
 	return sizeof(VertexBufferElement);
 }
 
-size_t AdvancedShader::getUniformBufferSize() const
+size_t CubeShader::getUniformBufferSize() const
 {
 	return sizeof(UnformBuffer);
 }

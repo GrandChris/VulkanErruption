@@ -17,10 +17,12 @@ class AdvancedGraphicsPipeline
 public:
 	void createGraphicsPipeline(RenderEngineInterface& engine, 
         std::vector<char> const & vertexShaderCode,
+        std::vector<char> const & geometryShaderCode,
         std::vector<char> const & fragmentShaderCode,
         vk::VertexInputBindingDescription const & bindingDescription,
         std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
-		vk::DescriptorSetLayout const & descriptorSetLayout
+		vk::DescriptorSetLayout const & descriptorSetLayout,
+		vk::PrimitiveTopology const inputTopology
         );
 
     vk::PipelineLayout const & getPipelineLayout() const;
@@ -40,15 +42,18 @@ private:
 
 inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterface& engine, 
         std::vector<char> const & vertexShaderCode,
+        std::vector<char> const & geometryShaderCode,
         std::vector<char> const & fragmentShaderCode,
         vk::VertexInputBindingDescription const & bindingDescription,
         std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
-		vk::DescriptorSetLayout const & descriptorSetLayout
+		vk::DescriptorSetLayout const & descriptorSetLayout,
+		vk::PrimitiveTopology const inputTopology
         )
 {
     vk::Extent2D const swapChainExtent = engine.getSwapChainExtent();
 
     vk::UniqueShaderModule const vertShaderModule = engine.createShaderModule(vertexShaderCode);
+    vk::UniqueShaderModule const geometryShaderModule = geometryShaderCode.empty() ? vk::UniqueShaderModule() : engine.createShaderModule(geometryShaderCode);
 	vk::UniqueShaderModule const fragShaderModule = engine.createShaderModule(fragmentShaderCode);
 
 	vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
@@ -56,17 +61,30 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
 	vertShaderStageInfo.setModule(vertShaderModule.get());
 	vertShaderStageInfo.setPName("main");
 
+	vk::PipelineShaderStageCreateInfo geomShaderStageInfo;
+	geomShaderStageInfo.setStage(vk::ShaderStageFlagBits::eGeometry);
+	geomShaderStageInfo.setModule(geometryShaderModule.get());
+	geomShaderStageInfo.setPName("main");
+
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
 	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
 	fragShaderStageInfo.setModule(fragShaderModule.get());
 	fragShaderStageInfo.setPName("main");
 
-	size_t const shaderStagesSize = 2;
-	vk::PipelineShaderStageCreateInfo shaderStages[shaderStagesSize] = 
-    {
-		vertShaderStageInfo,
-		fragShaderStageInfo
-    };
+	size_t const shaderStagesSize = geometryShaderCode.empty() ? 2 : 3;
+	vk::PipelineShaderStageCreateInfo shaderStages[shaderStagesSize] = {};
+	
+	if(geometryShaderCode.empty())
+	{
+		shaderStages[0] = vertShaderStageInfo;
+		shaderStages[1] = fragShaderStageInfo;
+	}
+	else 
+	{
+		shaderStages[0] = vertShaderStageInfo;
+		shaderStages[1] = geomShaderStageInfo;
+		shaderStages[2] = fragShaderStageInfo;
+	}
 
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
 	vertexInputInfo.setVertexBindingDescriptionCount(1);
@@ -76,8 +94,9 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 	// inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleStrip);
+	// inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleStrip);
     // inputAssembly.setTopology(vk::PrimitiveTopology::ePointList);
+    inputAssembly.setTopology(inputTopology);
 	inputAssembly.setPrimitiveRestartEnable(VK_FALSE);
 
 	vk::Viewport viewport;
@@ -103,11 +122,11 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
 	rasterizer.setRasterizerDiscardEnable(VK_FALSE);
 	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 	rasterizer.setLineWidth(1.0f);
-	// rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-	rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
+	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	// rasterizer.setCullMode(vk::CullModeFlagBits::eNone);
 	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
-	//rasterizer.setFrontFace(vk::FrontFace::eClockwise);
+	// rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 	rasterizer.setDepthBiasEnable(VK_FALSE);
 	rasterizer.setDepthBiasConstantFactor(0.0f); // Optional
 	rasterizer.setDepthBiasClamp(0.0f); // Optional

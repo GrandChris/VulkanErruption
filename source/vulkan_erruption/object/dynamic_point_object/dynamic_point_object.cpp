@@ -19,7 +19,7 @@ DynamicPointObject::DynamicPointObject(DynamicPointObjectShader const & shader, 
 void DynamicPointObject::setup(RenderEngineInterface & engine)
 {   
     // vertex buffer
-    mVertexBuffer.createVertexBuffer(engine, mSize);
+    mVertexBuffer.createVertexBuffer(engine, mSize * mShader.getVertexElementSize());
     
     // uniform buffer
     mUniformBuffer.createUniformBuffer(engine, mShader.getUniformBufferSize());
@@ -34,10 +34,12 @@ void DynamicPointObject::setup(RenderEngineInterface & engine)
     // pipeline
     mPipeline.createGraphicsPipeline(engine, 
         mShader.getVertexShaderCode(),
+        mShader.getGeometryShaderCode(),
         mShader.getFragmentShaderCode(),
         mShader.getVertexBindingDescription(),
         mShader.getVertexAttributeDescriptions(),
-        mDescriptorSetLayout.getDescriptorSetLayout());
+        mDescriptorSetLayout.getDescriptorSetLayout(),
+        mShader.getInputTopology());
 
     // commands
     mCommands.recordCommands(engine,

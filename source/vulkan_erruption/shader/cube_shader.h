@@ -1,8 +1,8 @@
 //
-// @file:   simple_shader.h
+// @file:   cube_shader.h
 // @author: GrandChris
 // @date:   2021-09-07
-// @brief:  Shader for hello triangle
+// @brief:  Shader for drawing cubes
 //
 
 #pragma once 
@@ -12,7 +12,7 @@
 #include "vulkan_erruption/object/simple_object/hello_triangle_shader.h"
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object_shader.h"
 
-class AdvancedShader : public DynamicPointObjectShader
+class CubeShader : public DynamicPointObjectShader
 {
 public:
 	enum class LightingType 
@@ -39,7 +39,7 @@ public:
     // float specular;
 	};
 
-	AdvancedShader(LightingType light = LightingType::Pong);
+	CubeShader(LightingType light = LightingType::Pong);
 
 	std::vector<char> getVertexShaderCode() const override;
 	std::vector<char> getGeometryShaderCode() const override;

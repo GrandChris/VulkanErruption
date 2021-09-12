@@ -70,7 +70,7 @@ public:
     Event<void(UniformBuffer&)> updateUniformBuffer;
 
     ConcreteShaderObject(size_t size, TShader const & shader) 
-        : DynamicPointObject(shader, size * sizeof(VertexBufferElement))
+        : DynamicPointObject(shader, size)
     {
 
     }
