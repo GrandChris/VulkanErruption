@@ -54,9 +54,9 @@ target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})
 # target_include_directories(${PROJECT_NAME} PRIVATE vcpkg_installed/x64-mingw-static/include)
 # target_link_directories(${PROJECT_NAME} PUBLIC vcpkg_installed/x64-mingw-static/lib)
 
-include_directories(vcpkg_installed/x64-mingw-static/include)
-link_directories(vcpkg_installed/x64-mingw-static/lib)
-link_directories(vcpkg_installed/x64-mingw-static/lib/manual-link)
+include_directories(${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-mingw-static/include)
+link_directories(${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-mingw-static/lib)
+link_directories(${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-mingw-static/lib/manual-link)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw3)
 
@@ -69,16 +69,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
 
 
 # Vulkan::glslc
-set(FILE_TO_HEADER ${CMAKE_SOURCE_DIR}/shaders/FileToHeader.exe)
+set(FILE_TO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/shaders/FileToHeader.exe)
 
 file(GLOB SHADER_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/shaders/source/*.vert"
-    "${CMAKE_SOURCE_DIR}/shaders/source/*.frag"
-    "${CMAKE_SOURCE_DIR}/shaders/source/*.geom"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*.geom"
 
-    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.vert"
-    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.frag"
-    "${CMAKE_SOURCE_DIR}/shaders/source/*/*.geom"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/source/*/*.geom"
 
 )
 
