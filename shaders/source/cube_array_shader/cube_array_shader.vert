@@ -13,7 +13,7 @@ layout(location = 0) in uint inColor;
 
 layout(location = 0) out uint fragColor;
 
-layout (constant_id = 0) const float CUBE_SIZE = 0.05f * 4.0f;
+layout (constant_id = 0) const float CUBE_SIZE = 1.0f;
 layout (constant_id = 1) const uint ARRAY_LENGTH = 16;
 
 void main() 
@@ -23,9 +23,9 @@ void main()
     uint y =  (i / ARRAY_LENGTH) % ARRAY_LENGTH;
     uint z =  i / (ARRAY_LENGTH * ARRAY_LENGTH);
 
-    float xf = x * CUBE_SIZE;
-    float yf = y * CUBE_SIZE;
-    float zf = z * CUBE_SIZE;
+    float xf = x * CUBE_SIZE * 1.5;
+    float yf = y * CUBE_SIZE * 1.5;
+    float zf = z * CUBE_SIZE * 1.5;
 
     gl_Position = vec4(xf, yf, zf, 1.0);
     

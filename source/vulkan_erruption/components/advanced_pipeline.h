@@ -22,7 +22,13 @@ public:
         vk::VertexInputBindingDescription const & bindingDescription,
         std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
 		vk::DescriptorSetLayout const & descriptorSetLayout,
-		vk::PrimitiveTopology const inputTopology
+		vk::PrimitiveTopology const inputTopology,
+		std::vector<vk::SpecializationMapEntry> const & vertexShaderSpecializationMap,
+		std::vector<vk::SpecializationMapEntry> const & geometryShaderSpecializationMap,
+		std::vector<vk::SpecializationMapEntry> const & fragmentShaderSpecializationMap,
+		std::vector<uint8_t> const & vertexShaderSpecializationData,
+		std::vector<uint8_t> const & geometryShaderSpecializationData,
+		std::vector<uint8_t> const & fragmentShaderSpecializationData
         );
 
     vk::PipelineLayout const & getPipelineLayout() const;
@@ -47,8 +53,13 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
         vk::VertexInputBindingDescription const & bindingDescription,
         std::vector<vk::VertexInputAttributeDescription>const& attributeDescriptions,
 		vk::DescriptorSetLayout const & descriptorSetLayout,
-		vk::PrimitiveTopology const inputTopology
-        )
+		vk::PrimitiveTopology const inputTopology,
+		std::vector<vk::SpecializationMapEntry> const & vertexShaderSpecializationMap,
+		std::vector<vk::SpecializationMapEntry> const & geometryShaderSpecializationMap,
+		std::vector<vk::SpecializationMapEntry> const & fragmentShaderSpecializationMap,
+		std::vector<uint8_t> const & vertexShaderSpecializationData,
+		std::vector<uint8_t> const & geometryShaderSpecializationData,
+		std::vector<uint8_t> const & fragmentShaderSpecializationData)
 {
     vk::Extent2D const swapChainExtent = engine.getSwapChainExtent();
 
@@ -61,15 +72,42 @@ inline void AdvancedGraphicsPipeline::createGraphicsPipeline(RenderEngineInterfa
 	vertShaderStageInfo.setModule(vertShaderModule.get());
 	vertShaderStageInfo.setPName("main");
 
+	vk::SpecializationInfo vertexShaderSpecializationInfo = {};
+	if(vertexShaderSpecializationMap.size() > 0) {
+		vertexShaderSpecializationInfo.setMapEntryCount(vertexShaderSpecializationMap.size());
+		vertexShaderSpecializationInfo.setPMapEntries(vertexShaderSpecializationMap.data());
+		vertexShaderSpecializationInfo.setDataSize(vertexShaderSpecializationData.size());
+		vertexShaderSpecializationInfo.setPData(vertexShaderSpecializationData.data());
+		vertShaderStageInfo.setPSpecializationInfo(&vertexShaderSpecializationInfo);
+	}
+
 	vk::PipelineShaderStageCreateInfo geomShaderStageInfo;
 	geomShaderStageInfo.setStage(vk::ShaderStageFlagBits::eGeometry);
 	geomShaderStageInfo.setModule(geometryShaderModule.get());
 	geomShaderStageInfo.setPName("main");
 
+	vk::SpecializationInfo geometryShaderSpecializationInfo = {};
+	if(geometryShaderSpecializationMap.size() > 0) {
+		geometryShaderSpecializationInfo.setMapEntryCount(geometryShaderSpecializationMap.size());
+		geometryShaderSpecializationInfo.setPMapEntries(geometryShaderSpecializationMap.data());
+		geometryShaderSpecializationInfo.setDataSize(geometryShaderSpecializationData.size());
+		geometryShaderSpecializationInfo.setPData(geometryShaderSpecializationData.data());
+		geomShaderStageInfo.setPSpecializationInfo(&geometryShaderSpecializationInfo);
+	}
+
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
 	fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
 	fragShaderStageInfo.setModule(fragShaderModule.get());
 	fragShaderStageInfo.setPName("main");
+
+	vk::SpecializationInfo fragmentShaderSpecializationInfo = {};
+	if(fragmentShaderSpecializationMap.size() > 0) {
+		fragmentShaderSpecializationInfo.setMapEntryCount(fragmentShaderSpecializationMap.size());
+		fragmentShaderSpecializationInfo.setPMapEntries(fragmentShaderSpecializationMap.data());
+		fragmentShaderSpecializationInfo.setDataSize(fragmentShaderSpecializationData.size());
+		fragmentShaderSpecializationInfo.setPData(fragmentShaderSpecializationData.data());
+		fragShaderStageInfo.setPSpecializationInfo(&fragmentShaderSpecializationInfo);
+	}
 
 	size_t const shaderStagesSize = geometryShaderCode.empty() ? 2 : 3;
 	vk::PipelineShaderStageCreateInfo shaderStages[shaderStagesSize] = {};

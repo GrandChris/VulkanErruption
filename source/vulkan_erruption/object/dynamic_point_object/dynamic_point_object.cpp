@@ -39,7 +39,14 @@ void DynamicPointObject::setup(RenderEngineInterface & engine)
         mShader.getVertexBindingDescription(),
         mShader.getVertexAttributeDescriptions(),
         mDescriptorSetLayout.getDescriptorSetLayout(),
-        mShader.getInputTopology());
+        mShader.getInputTopology(),
+        mShader.getVertexShaderSpecializationMap(),
+        mShader.getGeometryShaderSpecializationMap(),
+        mShader.getFragmentShaderSpecializationMap(),
+        mShader.getVertexShaderSpecializationData(),
+        mShader.getGeometryShaderSpecializationData(),
+        mShader.getFragmentShaderSpecializationData()
+        );
 
     // commands
     mCommands.recordCommands(engine,

@@ -17,6 +17,15 @@ CubeArrayShader::CubeArrayShader(LightingType light)
 
 }
 
+
+CubeArrayShader::CubeArrayShader(float cubeSize, uint32_t arrayLength, LightingType light)
+: mLight(light),
+  mVertexShaderSpecializationInfo{cubeSize, arrayLength},
+  mGeometryShaderSpecializationInfo{cubeSize}
+{
+
+}
+
 std::vector<vk::VertexInputAttributeDescription> CubeArrayShader::getVertexAttributeDescriptions() const
 {
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
@@ -52,6 +61,48 @@ std::vector<vk::DescriptorSetLayoutBinding> CubeArrayShader::getUniformBindingDe
 	uboLayoutBinding[0].setPImmutableSamplers(nullptr); // Optional
 
 	return uboLayoutBinding;
+}
+
+std::vector<vk::SpecializationMapEntry> CubeArrayShader::getVertexShaderSpecializationMap() const
+{
+	std::vector<vk::SpecializationMapEntry> specializationMapEntry;
+	specializationMapEntry.resize(2);
+	specializationMapEntry[0].setConstantID(0);
+	specializationMapEntry[0].setSize(sizeof(SpecializationInfoVertexShader().cubeSize));
+	specializationMapEntry[0].setOffset(offsetof(SpecializationInfoVertexShader, cubeSize));
+
+	specializationMapEntry[1].setConstantID(1);
+	specializationMapEntry[1].setSize(sizeof(SpecializationInfoVertexShader().arrayLength));
+	specializationMapEntry[1].setOffset(offsetof(SpecializationInfoVertexShader, arrayLength));
+
+	return specializationMapEntry;
+}
+
+std::vector<vk::SpecializationMapEntry> CubeArrayShader::getGeometryShaderSpecializationMap() const
+{
+	std::vector<vk::SpecializationMapEntry> specializationMapEntry;
+	specializationMapEntry.resize(1);
+	specializationMapEntry[0].setConstantID(0);
+	specializationMapEntry[0].setSize(sizeof(SpecializationInfoGeometryShader().cubeSize));
+	specializationMapEntry[0].setOffset(offsetof(SpecializationInfoGeometryShader, cubeSize));
+
+	return specializationMapEntry;
+}
+
+std::vector<uint8_t> CubeArrayShader::getVertexShaderSpecializationData() const
+{
+	auto data = std::vector<uint8_t>(sizeof(SpecializationInfoVertexShader));
+	memcpy(data.data(), &mVertexShaderSpecializationInfo, sizeof(SpecializationInfoVertexShader));
+
+	return data;
+}
+
+std::vector<uint8_t> CubeArrayShader::getGeometryShaderSpecializationData() const
+{
+	auto data = std::vector<uint8_t>(sizeof(SpecializationInfoGeometryShader));
+	memcpy(data.data(), &mGeometryShaderSpecializationInfo, sizeof(SpecializationInfoGeometryShader));
+
+	return data;
 }
 
 std::vector<char> CubeArrayShader::getVertexShaderCode() const

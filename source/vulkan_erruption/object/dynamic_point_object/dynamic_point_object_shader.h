@@ -25,4 +25,12 @@ public:
 
     virtual size_t getVertexElementSize() const = 0;
     virtual size_t getUniformBufferSize() const = 0;
+
+    virtual std::vector<vk::SpecializationMapEntry> getVertexShaderSpecializationMap() const   {return {};}
+    virtual std::vector<vk::SpecializationMapEntry> getGeometryShaderSpecializationMap() const {return {};}
+    virtual std::vector<vk::SpecializationMapEntry> getFragmentShaderSpecializationMap() const {return {};}
+
+    virtual std::vector<uint8_t> getVertexShaderSpecializationData() const    {return {};}
+    virtual std::vector<uint8_t> getGeometryShaderSpecializationData() const  {return {};}
+    virtual std::vector<uint8_t> getFragmentShaderSpecializationData() const  {return {};}
 };

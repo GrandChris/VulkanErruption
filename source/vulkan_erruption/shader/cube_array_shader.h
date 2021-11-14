@@ -36,7 +36,21 @@ public:
     // float specular;
 	};
 
+	struct SpecializationInfoVertexShader
+	{
+		float cubeSize = 1.0f;
+		uint32_t arrayLength = 16.0f;
+	};
+
+	struct SpecializationInfoGeometryShader
+	{
+		float cubeSize = 1.0f;
+	};
+
+
 	CubeArrayShader(LightingType light = LightingType::Pong);
+
+	CubeArrayShader(float cubeSize, uint32_t arrayLength, LightingType light = LightingType::Pong);
 
 	std::vector<char> getVertexShaderCode() const override;
 	std::vector<char> getGeometryShaderCode() const override;
@@ -52,7 +66,15 @@ public:
 	size_t getVertexElementSize() const override;
 	size_t getUniformBufferSize() const override;
 
+    std::vector<vk::SpecializationMapEntry> getVertexShaderSpecializationMap() const override;
+    std::vector<vk::SpecializationMapEntry> getGeometryShaderSpecializationMap() const override;
+
+    std::vector<uint8_t> getVertexShaderSpecializationData() const override;
+    std::vector<uint8_t> getGeometryShaderSpecializationData() const override;
+
 private:
 	LightingType const mLight;
+	SpecializationInfoVertexShader const mVertexShaderSpecializationInfo = {};
+	SpecializationInfoVertexShader const mGeometryShaderSpecializationInfo = {};
 };
 

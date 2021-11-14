@@ -16,7 +16,7 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 proj;
 } ubo;
 
-layout (constant_id = 0) const float CUBE_SIZE = 0.05f;
+layout (constant_id = 0) const float CUBE_SIZE = 1.0f;
 
 layout(points) in;
 
@@ -30,7 +30,7 @@ layout(location = 0) out vec3 fragColor;
 
 
 // Vertices
-const float a = CUBE_SIZE;
+float a = CUBE_SIZE / 2.0f;
 vec3 frontTopLeft =     vec3( a, -a,  a);    
 vec3 frontTopRight =    vec3( a,  a,  a);   
 vec3 frontBottomLeft =  vec3( a, -a, -a); 
