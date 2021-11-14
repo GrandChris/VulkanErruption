@@ -2,7 +2,7 @@
 // @file:   cube_shader.h
 // @author: GrandChris
 // @date:   2021-09-07
-// @brief:  Shader for drawing cubes
+// @brief:  Shader for drawing an array of cubes
 //
 
 #pragma once 
@@ -10,7 +10,7 @@
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object_shader.h"
 #include "include_glm.h"
 
-class CubeShader : public DynamicPointObjectShader
+class CubeArrayShader : public DynamicPointObjectShader
 {
 public:
 	enum class LightingType 
@@ -22,8 +22,7 @@ public:
 	};
 
 	struct VertexBufferElement {
-		glm::vec3 pos;
-		glm::vec3 color;
+		glm::uint color;
 	};
 
 	// https://www.oreilly.com/library/view/opengl-programming-guide/9780132748445/app09lev1sec2.html
@@ -37,7 +36,7 @@ public:
     // float specular;
 	};
 
-	CubeShader(LightingType light = LightingType::Pong);
+	CubeArrayShader(LightingType light = LightingType::Pong);
 
 	std::vector<char> getVertexShaderCode() const override;
 	std::vector<char> getGeometryShaderCode() const override;

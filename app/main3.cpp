@@ -3,6 +3,7 @@
 #include "vulkan_erruption/vulkan_erruption.h"
 #include "vulkan_erruption/shader/advanced_shader.h"
 #include "vulkan_erruption/shader/cube_shader.h"
+#include "vulkan_erruption/shader/cube_array_shader.h"
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object.h"
 
 #include <iostream>
@@ -140,18 +141,35 @@ private:
     uint64_t count = 0;
 };
 
+// void find_neighbour(uint32_t array3D[], size_t const length = 16)
+// {
+//     for(size_t z = 0; z < 16; ++z) {
+//         for(size_t y = 0; y < 16; ++y) {
+//             for(size_t x = 0; x < 16; ++x) {
+//                 int const left
+//             }
+//         }
+//     }
+// }
+
+
 int main() {
 
     cout << "Hello World!" << endl;
 
     glm::mat4 view = glm::mat4(1);
     glm::mat4 proj = glm::mat4(1);
+    
+    // ########################################################################
+    // Advanced Shader
 
     Cube cub1 = Cube({-1.5f, 0.0f, -1.2f}, {0.1f, 0.4f, 0.7f}, view, proj, AdvancedShader::LightingType::None);
     Cube cub2 = Cube({1.5f, 0.0f, -1.2f}, {0.7f, 0.4f, 0.1f}, view, proj, AdvancedShader::LightingType::Diffuse);
     Cube cub3 = Cube({0.0f, 0.0f, 1.2f}, {0.4f, 0.7f, 0.1f}, view, proj, AdvancedShader::LightingType::Pong);
 
+    // ########################################################################
     // Cube Shader
+
     CubeShader::VertexBufferElement cubeShaderVertexData[] = {
        {{0.0f, 2.0f, 0.0f}, {0.1f, 0.4f, 0.7f}},
        {{0.0f, 3.0f, 0.0f}, {0.7f, 0.4f, 0.1f}},
@@ -177,12 +195,55 @@ int main() {
     cubeObject.updateVertexBuffer.add(lbdVertexUpdate);
     cubeObject.updateUniformBuffer.add(lbdUniformUpdate);
 
+    // ########################################################################
+    // Cube Array Shader
+
+    CubeArrayShader::VertexBufferElement cubeArrayShaderVertexData[16*16*16] = {};
+    uint8_t i = 0;
+    for(auto & elem: cubeArrayShaderVertexData) {
+        uint8_t const r = i++;
+        uint8_t const g = 32;
+        uint8_t const b = 128;
+        uint8_t skip = 1;
+
+        if(3 <= i%16 && i%16 <= 14) {
+            skip = 0;
+        }
+
+        glm::uint res = (r << 24) | (g << 16) | (b << 8) | skip;
+
+        elem.color = res;
+    }
+
+    auto lbdVertexUpdate2 = [&](std::span<CubeArrayShader::VertexBufferElement> data){
+        assert(std::size(cubeArrayShaderVertexData) == std::size(data));
+        std::copy(std::cbegin(cubeArrayShaderVertexData), std::cend(cubeArrayShaderVertexData), std::begin(data));
+    };
+
+    auto lbdUniformUpdate2 = [&](CubeArrayShader::UnformBuffer & data){
+        data.model = glm::mat4(1);
+        data.view = view;
+        data.proj = proj;
+        data.lightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
+		data.ambient = 0.2f;
+    };
+
+    CubeArrayShader cubeArrayShader;
+    ConcreteShaderObject<DynamicPointObject, CubeArrayShader> cubeArrayObject(std::size(cubeArrayShaderVertexData), cubeArrayShader);
+    cubeArrayObject.updateVertexBuffer.add(lbdVertexUpdate2);
+    cubeArrayObject.updateUniformBuffer.add(lbdUniformUpdate2);
+
+
+
+    // ########################################################################
+    // Render Engine
 
     RenderEngine renderEngine;
 	renderEngine.add(cub1.get());
 	renderEngine.add(cub2.get());
 	renderEngine.add(cub3.get());
 	renderEngine.add(cubeObject);
+    renderEngine.add(cubeArrayObject);
 
     uint64_t count = 0;
     auto lbdStartOfNextFrame = [&](){

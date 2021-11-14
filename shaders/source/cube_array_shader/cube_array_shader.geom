@@ -16,7 +16,7 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 proj;
 } ubo;
 
-layout (constant_id = 0) const float CUBE_SIZE = 0.5f;
+layout (constant_id = 0) const float CUBE_SIZE = 0.05f;
 
 layout(points) in;
 
@@ -24,7 +24,7 @@ layout(points) in;
 // layout(line_strip, max_vertices=3) out;
 layout(triangle_strip, max_vertices=24) out;
 
-layout(location = 0) in vec3 color[];
+layout(location = 0) in uint color[];
 
 layout(location = 0) out vec3 fragColor;
 
@@ -127,11 +127,31 @@ vec3 ExtractCameraPos_NoScale(const mat4 a_modelView)
   return retVec;
 }
 
+vec4 ToRGB(uint val)
+{
+    uint r = (0xFF000000 & val) >> 24;
+    float rf = r / 255.0f;
+
+    uint g = (0x00FF0000 & val) >> 16;
+    float gf = g / 255.0f;
+
+    uint b = (0x0000FF00 & val) >> 8;
+    float bf = b / 255.0f;
+
+    uint skip = (0x000000FF & val);
+
+    return vec4(rf, gf, bf, skip);
+}
+
 void main()
 {	
+    const vec4 vec3Color = ToRGB(color[0]);
+    if(vec3Color.a == 0) {
+        return;
+    }
+
     const vec3 viewPos = ExtractCameraPos_NoScale(ubo.view);
     const vec3 viewDir = viewPos - gl_in[0].gl_Position.xyz;
-
 
     const mat4 mvp = ubo.proj * ubo.view * ubo.model;
 
@@ -142,7 +162,8 @@ void main()
             for(int j = 0; j < vertPerFace; ++j)
             {
                 const int index = i * vertPerFace + j;
-                fragColor = color[0];
+                fragColor = vec3Color.rgb;
+                // fragColor = vec3(0.5f, 0.5f, 0.5f);
                 const vec4 pos = gl_in[0].gl_Position + vec4(cube[index], 0.0f);
 
                 gl_Position = mvp * pos;

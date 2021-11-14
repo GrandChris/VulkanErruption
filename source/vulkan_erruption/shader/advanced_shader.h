@@ -7,10 +7,8 @@
 
 #pragma once 
 
-#include "include_glm.h"
-
-#include "vulkan_erruption/object/simple_object/hello_triangle_shader.h"
 #include "vulkan_erruption/object/dynamic_point_object/dynamic_point_object_shader.h"
+#include "include_glm.h"
 
 class AdvancedShader : public DynamicPointObjectShader
 {
