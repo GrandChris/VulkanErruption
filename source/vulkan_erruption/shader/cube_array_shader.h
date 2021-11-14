@@ -47,10 +47,13 @@ public:
 		float cubeSize = 1.0f;
 	};
 
+	CubeArrayShader(float cubeSize = 1.0f, uint32_t arrayLength = 16.0f, LightingType light = LightingType::Pong);
 
-	CubeArrayShader(LightingType light = LightingType::Pong);
-
-	CubeArrayShader(float cubeSize, uint32_t arrayLength, LightingType light = LightingType::Pong);
+	void setSpecialization(float const cubeSize, uint32_t arrayLength) {
+		mVertexShaderSpecializationInfo.cubeSize = cubeSize;
+		mVertexShaderSpecializationInfo.arrayLength = arrayLength;
+		mGeometryShaderSpecializationInfo.cubeSize = cubeSize;
+	}
 
 	std::vector<char> getVertexShaderCode() const override;
 	std::vector<char> getGeometryShaderCode() const override;
@@ -74,7 +77,7 @@ public:
 
 private:
 	LightingType const mLight;
-	SpecializationInfoVertexShader const mVertexShaderSpecializationInfo = {};
-	SpecializationInfoVertexShader const mGeometryShaderSpecializationInfo = {};
+	SpecializationInfoVertexShader mVertexShaderSpecializationInfo = {};
+	SpecializationInfoVertexShader mGeometryShaderSpecializationInfo = {};
 };
 

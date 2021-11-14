@@ -11,11 +11,6 @@
 #include "shaders/cube_array_shader.geom.h"
 #include "shaders/cube_array_shader.frag.h"
 
-CubeArrayShader::CubeArrayShader(LightingType light)
-	: mLight(light)
-{
-
-}
 
 
 CubeArrayShader::CubeArrayShader(float cubeSize, uint32_t arrayLength, LightingType light)

@@ -151,9 +151,8 @@ void main()
     }
 
     const vec3 viewPos = ExtractCameraPos_NoScale(ubo.view);
-    const vec3 viewDir = viewPos - gl_in[0].gl_Position.xyz;
-
-    const mat4 mvp = ubo.proj * ubo.view * ubo.model;
+    const vec4 posCenter = ubo.model * gl_in[0].gl_Position;
+    const vec3 viewDir = viewPos - posCenter.xyz;
 
     for(int i = 0; i < facesSize; ++i)
     {
@@ -163,10 +162,9 @@ void main()
             {
                 const int index = i * vertPerFace + j;
                 fragColor = vec3Color.rgb;
-                // fragColor = vec3(0.5f, 0.5f, 0.5f);
-                const vec4 pos = gl_in[0].gl_Position + vec4(cube[index], 0.0f);
+                const vec4 pos = posCenter + vec4(cube[index], 0.0f);
 
-                gl_Position = mvp * pos;
+                gl_Position = ubo.proj * ubo.view * pos;
                 EmitVertex();
             }
             EndPrimitive();
