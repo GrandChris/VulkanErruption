@@ -19,7 +19,7 @@ public:
 
     std::vector<vk::UniqueBuffer> const & getBuffers();
 
-    void update(RenderEngineInterface& engine, size_t const imageIndex, Delegate<void(void * const, size_t)> & updateVertexBuffer);
+    void update(RenderEngineInterface& engine, size_t const imageIndex, bool updateRequired, Delegate<void(void * const, size_t, bool)> & updateVertexBuffer);
 
     void clear();
 private:
@@ -55,7 +55,7 @@ inline std::vector<vk::UniqueBuffer> const & AdvancedVertexBuffer::getBuffers()
     return vertexBuffers;
 }
 
-inline void AdvancedVertexBuffer::update(RenderEngineInterface& engine, size_t const imageIndex, Delegate<void(void * const, size_t)> & updateVertexBuffer)
+inline void AdvancedVertexBuffer::update(RenderEngineInterface& engine, size_t const imageIndex, bool updateRequired, Delegate<void(void * const, size_t, bool)> & updateVertexBuffer)
 {
     assert(!vertexBufferMemory.empty());
     assert(!vertexBuffers.empty());
@@ -65,7 +65,7 @@ inline void AdvancedVertexBuffer::update(RenderEngineInterface& engine, size_t c
 
     void * memMappedData = engine.getDevice().mapMemory(vertexMem, 0, mVertexBufferSize);
 
-    updateVertexBuffer(memMappedData, mVertexBufferSize);
+    updateVertexBuffer(memMappedData, mVertexBufferSize, updateRequired);
 
     engine.getDevice().unmapMemory(vertexMem);
 }

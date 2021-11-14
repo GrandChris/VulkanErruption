@@ -35,7 +35,7 @@ public:
     void cleanup(RenderEngineInterface & engine) override;
 
 protected:
-    virtual void doUpdateVertexBuffer(void * data, size_t const size) = 0;
+    virtual void doUpdateVertexBuffer(void * data, size_t const size, bool updateRequired) = 0;
     virtual void doUpdateUniformBuffer(void * data, size_t const size) = 0;
 
 private:
@@ -55,6 +55,8 @@ private:
 
     AdvancedGraphicsPipeline mPipeline;
     AdvancedCommandBuffer mCommands;
+
+    int mUpdateRequiredCounter = 3;
 };
 
 
@@ -66,7 +68,7 @@ public:
     using VertexBufferElement = TShader::VertexBufferElement;
     using UniformBuffer = TShader::UnformBuffer;
 
-    Event<void(std::span<VertexBufferElement>)> updateVertexBuffer;
+    Event<void(std::span<VertexBufferElement>, bool)> updateVertexBuffer;
     Event<void(UniformBuffer&)> updateUniformBuffer;
 
     ConcreteShaderObject(size_t size, TShader const & shader) 
@@ -76,12 +78,12 @@ public:
     }
 
 private:
-    void doUpdateVertexBuffer(void * data, size_t const size) override
+    void doUpdateVertexBuffer(void * data, size_t const size, bool updateRequired) override
     {
         VertexBufferElement * begin = reinterpret_cast<VertexBufferElement *>(data);
         VertexBufferElement * end = reinterpret_cast<VertexBufferElement *>(reinterpret_cast<uint8_t *>(data) + size);
         std::span<VertexBufferElement> span(begin, end);
-        updateVertexBuffer(span);
+        updateVertexBuffer(span, updateRequired);
     }
 
     void doUpdateUniformBuffer(void * data, size_t const size) override

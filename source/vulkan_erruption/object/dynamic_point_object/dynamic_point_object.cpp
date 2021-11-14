@@ -59,10 +59,17 @@ void DynamicPointObject::setup(RenderEngineInterface & engine)
 
 void DynamicPointObject::draw(RenderEngineInterface & engine, size_t const imageIndex)
 {
-    Delegate<void(void * const, size_t)> funcVertex;
+    bool updateRequired = false;
+    if(mUpdateRequiredCounter > 0) {
+        updateRequired = true;
+        --mUpdateRequiredCounter;
+    }
+
+
+    Delegate<void(void * const, size_t, bool)> funcVertex;
     funcVertex.set<DynamicPointObject::doUpdateVertexBuffer>(*this);
 
-    mVertexBuffer.update(engine, imageIndex, funcVertex);
+    mVertexBuffer.update(engine, imageIndex, updateRequired, funcVertex);
 
     Delegate<void(void * const, size_t)> funcUniform;
     funcUniform.set<DynamicPointObject::doUpdateUniformBuffer>(*this);
@@ -82,4 +89,6 @@ void DynamicPointObject::cleanup(RenderEngineInterface & engine)
     mUniformBuffer.clear();
 
     mVertexBuffer.clear();
+
+    mUpdateRequiredCounter = 3;
 }

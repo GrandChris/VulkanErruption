@@ -112,7 +112,7 @@ public:
         return mObj;
     }
 
-    void updateVertexData(std::span<AdvancedShader::VertexBufferElement> data)
+    void updateVertexData(std::span<AdvancedShader::VertexBufferElement> data, bool updateRequired)
     {
         std::copy(std::cbegin(vertexData), std::cend(vertexData), std::begin(data));
     }
@@ -177,7 +177,7 @@ int main() {
        {{0.0f, 5.0f, 0.0f}, {0.6f, 0.7f, 0.3f}}
     };
 
-    auto lbdVertexUpdate = [&](std::span<CubeShader::VertexBufferElement> data){
+    auto lbdVertexUpdate = [&](std::span<CubeShader::VertexBufferElement> data, bool updateRequired){
         assert(std::size(cubeShaderVertexData) == std::size(data));
         std::copy(std::cbegin(cubeShaderVertexData), std::cend(cubeShaderVertexData), std::begin(data));
     };
@@ -215,7 +215,7 @@ int main() {
         elem.color = res;
     }
 
-    auto lbdVertexUpdate2 = [&](std::span<CubeArrayShader::VertexBufferElement> data){
+    auto lbdVertexUpdate2 = [&](std::span<CubeArrayShader::VertexBufferElement> data, bool updateRequired){
         assert(std::size(cubeArrayShaderVertexData) == std::size(data));
         std::copy(std::cbegin(cubeArrayShaderVertexData), std::cend(cubeArrayShaderVertexData), std::begin(data));
     };
